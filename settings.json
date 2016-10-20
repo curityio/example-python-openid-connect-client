@@ -1,0 +1,13 @@
+{
+  "client_id": "python-client",
+  "client_secret": "Password1",
+  "redirect_uri": "https://localhost:5443/callback",
+  "verify_ssl_server": false,
+  "scope": "openid",
+  "authorization_endpoint": "https://localhost:8443/dev/oauth/authorize",
+  "token_endpoint": "https://localhost:8443/dev/oauth/token",
+  "logout_endpoint": "https://localhost:8443/dev/authn/authenticate/logout",
+  "jwks_uri": "https://localhost:8443/dev/oauth/anonymous/jwks",
+  "issuer": "se.curity",
+  "debug": true
+}

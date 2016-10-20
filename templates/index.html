@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenID Connect Demo</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <style type="text/css">
+        nav img {
+            margin-top: 1.6em;
+            margin-left: 1.6em;
+            max-width: 260px;
+        }
+
+        .navbar {
+            height: 112px;
+            background: #272727;
+        }
+
+        #profile img {
+            max-width: 100px;
+        }
+
+        h2 {
+            margin: 1em 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        h3 {
+            margin: 0.5em 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"
+            integrity="sha256-/SIrNqv8h6QGKDuNoLGA4iret+kyesCkHGzVUUV0shc=" crossorigin="anonymous"></script>
+
+    <script type="application/javascript">
+        function prettyJson(text) {
+            var token;
+            try {
+                token = JSON.parse(text);
+            } catch (e) {
+                // not json
+                return;
+            }
+            return JSON.stringify(token, null, 2);
+        }
+
+        function onLoad() {
+            $('.json').each(function () {
+                $(this).text(prettyJson($(this).text()));
+            })
+        }
+
+    </script>
+</head>
+<body onload="onLoad()">
+<header class="group">
+    <nav class="navbar navbar-default">
+        <div class="navbar-header pull-left">
+            <a href="/"><img src="{{ url_for('static', filename='logo.png') }}"/></a>
+        </div>
+    </nav>
+</header>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            {% if user.name %}
+                <div>
+                    <h2>Welcome {{ user.name }}!</h2>
+                </div>
+            {% endif %}
+
+            {% if user.access_token %}
+                <div>
+                    <h3>Access Token</h3>
+                    {% if user.access_token_json %}
+                        <pre class="json">{{ user.access_token_json[0] }}</pre>
+                        <pre class="json">{{ user.access_token_json[1] }}</pre>
+                    {% else %}
+                        <pre>{{ user.access_token }}</pre>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if user.id_token %}
+                <div>
+                    <h3>ID Token:</h3>
+                    <pre class="json">{{ user.id_token_json[0] }}</pre>
+                    <pre class="json">{{ user.id_token_json[1] }}</pre>
+                </div>
+            {% endif %}
+
+            {% if user.refresh_token %}
+                <div>
+                    <h3>Refresh Token:</h3>
+                    <pre id="refresh_token">{{ user.refresh_token }}</pre>
+                </div>
+            {% endif %}
+
+            {% if error %}
+                <p class="text-danger">{{ error }}</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            {% if user.access_token or user.id_token %}
+                {% if user.refresh_token %}
+                    <a href="/refresh" class="btn btn-link">Refresh Access Token</a><br/>
+                {% endif %}
+                {% if user.refresh_token or user.access_token %}
+                    <a class="btn btn-link" role="button" href="/logout">Log out</a> <br/>
+                    <a class="btn btn-link" role="button" href="/revoke">Revoke token(s)</a>
+                {% endif %}
+            {% else %}
+                <p class="text-default">This is a demo application to demonstrate the use for OpenID Connect. </p>
+
+                <p class="text-default">Pressing Sign In will redirect you to {{ server_name }} and authorize
+                    the application python-flask to access your profile info. The data will only be used to demonstrate
+                    the possibilities of the OpenID Connect
+                    protocol and will not be stored. Be sure to revoke access when you are satisfied.</p>
+                <a class="btn btn-link" role="button" href="/login">Sign In</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</body>
+</html>
