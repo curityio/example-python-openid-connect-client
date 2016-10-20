@@ -10,7 +10,7 @@
 
 ## License
 
-The OpenID Connect client example is licensed under Apache v. 2 license Apache v. 2.
+The OpenID Connect client example is licensed under Apache v. 2 license.
 
 ## Content
 
@@ -18,3 +18,5 @@ This document contains attributions, copyright notices, and links to the softwar
 licenses of third-party software libraries used by the Software.
 
 ## Components
+
+N/A
