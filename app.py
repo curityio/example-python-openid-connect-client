@@ -28,7 +28,10 @@ from validator import JwtValidator
 _app = Flask(__name__)
 
 
-class UserSession(object):
+class UserSession:
+    def __init__(self):
+        pass
+
     access_token = None
     refresh_token = None
     id_token = None
@@ -210,10 +213,11 @@ if __name__ == '__main__':
     if 'jwks_uri' in _config:
         _jwt_validator = JwtValidator(_config)
     else:
-        print 'Found no url to JWKS, will not be able to validate JWT signature.'
+        print 'Found no url to JWK set, will not be able to validate JWT signature.'
 
     # create a session store
     _session_store = {}
+
     # initiate the app
     _app.secret_key = generate_random_string()
 
