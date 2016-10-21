@@ -134,10 +134,10 @@ def oauth_callback():
     :return:redirect to / with user info stored in the session.
     """
     if 'state' not in session or session['state'] != request.args['state']:
-        raise Exception('Missing or invalid state')
+        return create_error('Missing or invalid state')
 
     if 'code' not in request.args:
-        raise Exception('No code in response')
+        return create_error('No code in response')
 
     try:
         token_data = _client.get_token(request.args['code'])
