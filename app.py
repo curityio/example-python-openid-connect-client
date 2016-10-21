@@ -78,7 +78,7 @@ def logout():
     session.clear()
     if 'logout_endpoint' in _config:
         print "Logging out against", _config['logout_endpoint']
-        return redirect(_config['logout_endpoint'] + '?redirect_uri=' + _config['base_url'])
+        return redirect(_config['logout_endpoint'] + '?redirect_uri=' + _base_url)
     return redirect_with_baseurl('/')
 
 
@@ -204,7 +204,7 @@ def load_config():
 
 
 def redirect_with_baseurl(path):
-    return redirect(_config['base_url'] + path)
+    return redirect(_base_url + path)
 
 
 if __name__ == '__main__':
@@ -232,6 +232,10 @@ if __name__ == '__main__':
     else:
         _port = 5443
     _disable_https = 'disable_https' in _config and _config['disable_https']
+    if 'base_url' in _config:
+        _base_url = _config['base_url']
+    else:
+        _base_url = ''
 
     if _disable_https:
         _app.run('0.0.0.0', debug=_debug, port=_port)
