@@ -116,6 +116,7 @@ def revoke():
                 _client.revoke(user.refresh_token)
             except urllib2.URLError as e:
                 return create_error('Could not revoke refresh token: ' + e.msg)
+            user.refresh_token = None
 
     return redirect_with_baseurl('/')
 
