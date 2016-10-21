@@ -132,6 +132,7 @@ def call_api():
         if not user:
             return redirect_with_baseurl('/')
         if 'api_endpoint' in _config:
+            user.api_response = None
             if user.access_token:
                 try:
                     request = urllib2.Request(_config['api_endpoint'])
