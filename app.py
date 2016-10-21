@@ -64,7 +64,7 @@ def start_code_flow():
     :return: redirects to the authorization server with the appropriate parameters set.
     """
     login_url = _client.get_authn_req_url(session)
-    return redirect_with_baseurl(login_url)
+    return redirect(login_url)
 
 
 @_app.route('/logout')
