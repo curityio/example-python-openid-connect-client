@@ -64,7 +64,7 @@ def start_code_flow():
     :return: redirects to the authorization server with the appropriate parameters set.
     """
     login_url = _client.get_authn_req_url(session)
-    return redirect(login_url)
+    return redirect_with_baseurl(login_url)
 
 
 @_app.route('/logout')
@@ -78,8 +78,8 @@ def logout():
     session.clear()
     if 'logout_endpoint' in _config:
         print "Logging out against", _config['logout_endpoint']
-        return redirect(_config['logout_endpoint'] + '?redirect_uri=https://localhost:5443/')
-    return redirect('/')
+        return redirect(_config['logout_endpoint'] + '?redirect_uri=' + _config['base_url'])
+    return redirect_with_baseurl('/')
 
 
 @_app.route('/refresh')
@@ -95,7 +95,7 @@ def refresh():
         return create_error("Could not refresh Access Token: %s" % e.message)
     user.access_token = token_data['access_token']
     user.refresh_token = token_data['refresh_token']
-    return redirect('/')
+    return redirect_with_baseurl('/')
 
 
 @_app.route('/revoke')
@@ -107,7 +107,7 @@ def revoke():
     if 'session_id' in session:
         user = _session_store.get(session['session_id'])
         if not user:
-            redirect('/')
+            redirect_with_baseurl('/')
         if user.access_token:
             try:
                 _client.revoke(user.access_token)
@@ -124,7 +124,7 @@ def revoke():
             user.access_token = None
 
         user.id_token = None
-    return redirect('/')
+    return redirect_with_baseurl('/')
 
 
 @_app.route('/callback')
@@ -174,7 +174,7 @@ def oauth_callback():
     session['session_id'] = generate_random_string()
     _session_store[session['session_id']] = user
 
-    return redirect('/')
+    return redirect_with_baseurl('/')
 
 
 def create_error(message):
@@ -201,6 +201,10 @@ def load_config():
     config = json.loads(open(filename).read())
 
     return config
+
+
+def redirect_with_baseurl(path):
+    return redirect(_config['base_url'] + path)
 
 
 if __name__ == '__main__':

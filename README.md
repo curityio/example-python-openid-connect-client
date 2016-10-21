@@ -35,7 +35,8 @@ Name            | Type    | Mandatory | Default  | Description
 `verify_ssl_server` | boolean |       | `true`   | Set to false to disable certificate checks.
 `debug`         | boolean |           | `false`  | If set to true, Flask will be in debug mode and write stacktraces if an error occurs
 `port`          | number  |           | `5443`   | The port that the Flask server should listen to
-`port`          | boolean |           | `false`  | Set to true to run on http
+`disable_https` | boolean |           | `false`  | Set to true to run on http
+`base_url`      | string  |           |          | base url to be added to internal redirects. Set this to enable the client to be behind a proxy.
 
 ## Questions and Support
 
