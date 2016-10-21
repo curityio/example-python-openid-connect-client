@@ -28,10 +28,10 @@ Name            | Type    | Mandatory | Default  | Description
 `client_secret` | string  |    ✓      |          | The shared secret to use for authentication against the token endpoint.
 `discovery_url` | URL     |    ✓      |          | The URL where the metadata of the sever can be found. Should contain information about the endpoints and keys to be used. Configuration from the discovery url will override configuration from settings.json.
 `scope`         | string  |           | `openid` | The scopes to ask for.
-`jwks_uri`      | URL     | if `discovery_url` is not set, and an id_token is used          |          | The URL that points to the JWK set. 
+`jwks_uri`      | URL     | if `discovery_url` is not set and the `openid` scope is requested          |          | The URL that points to the JWK set. 
 `authorization_endpoint` | URL | if `discovery_url` is not set     |          | The URL to the authorization_endpoint.
 `token_endpoint`| URL     |           |          | The URL to the token_endpoint. Mandatory if `discovery_url` is not set.
-`issuer`        | string  | if an id_token is used and `discovery_url` is not set          |          | The ID of the token issuer.
+`issuer`        | string  | if the `openid` scope is requested and `discovery_url` is not set          |          | The ID of the token issuer.
 `verify_ssl_server` | boolean |       | `true`   | Set to false to disable certificate checks.
 `debug`         | boolean |           | `false`  | If set to true, Flask will be in debug mode and write stacktraces if an error occurs
 `port`          | number  |           | `5443`   | The port that the Flask server should listen to
