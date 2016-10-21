@@ -74,7 +74,9 @@
             }
 
             var apiStatusCode = $('#api-response-status-code');
-            if (apiStatusCode.length > 0 && apiStatusCode.text().trim() !== '200') {
+            if (apiStatusCode.length > 0 && apiStatusCode.text().trim() === '200') {
+                apiStatusCode.addClass('label-success');
+            } else {
                 apiStatusCode.addClass('label-danger').removeClass('label-success');
                 $('#api-response-data').addClass('alert').addClass('alert-danger');
             }
@@ -85,6 +87,7 @@
 
             $('.json').each(function () {
                 $(this).text(prettyJson($(this).text()));
+                $(this).removeClass('hidden');
             });
         });
 
@@ -134,20 +137,20 @@
                     {% if session.api_response %}
                         <li class="list-group-item">
                             API Response
-                            <span class="label label-success pull-right" id="api-response-status-code">
+                            <span class="label pull-right" id="api-response-status-code">
                                {{ session.api_response.code }}
                             </span>
                         </li>
                         <div>
-                            <pre class="json" id="api-response-data">{{ session.api_response['data'] }}</pre>
+                            <pre class="json hidden" id="api-response-data">{{ session.api_response['data'] }}</pre>
                         </div>
                     {% endif %}
 
                     {% if session.id_token %}
                         <li class="list-group-item">ID Token</li>
                         <div>
-                            <pre class="json">{{ session.id_token_json[0] }}</pre>
-                            <pre class="json" id="id-token-payload">{{ session.id_token_json[1] }}</pre>
+                            <pre class="json hidden">{{ session.id_token_json[0] }}</pre>
+                            <pre class="json hidden" id="id-token-payload">{{ session.id_token_json[1] }}</pre>
                         </div>
                     {% endif %}
 
@@ -159,8 +162,8 @@
                         </li>
                         <div>
                             {% if session.access_token_json %}
-                                <pre class="json">{{ session.access_token_json[0] }}</pre>
-                                <pre class="json">{{ session.access_token_json[1] }}</pre>
+                                <pre class="json hidden">{{ session.access_token_json[0] }}</pre>
+                                <pre class="json hidden">{{ session.access_token_json[1] }}</pre>
                             {% else %}
                                 <pre>{{ session.access_token }}</pre>
                             {% endif %}
