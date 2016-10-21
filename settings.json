@@ -1,13 +1,13 @@
 {
-  "client_id": "python-client",
+  "client_id": "test_client_1",
   "client_secret": "Password1",
-  "redirect_uri": "https://localhost:5443/callback",
-  "verify_ssl_server": false,
+  "redirect_uri": "http://localhost:8000/callback",
+  "port": 8000,
   "scope": "openid",
-  "authorization_endpoint": "https://localhost:8443/dev/oauth/authorize",
-  "token_endpoint": "https://localhost:8443/dev/oauth/token",
-  "logout_endpoint": "https://localhost:8443/dev/authn/authenticate/logout",
-  "jwks_uri": "https://localhost:8443/dev/oauth/anonymous/jwks",
-  "issuer": "se.curity",
-  "debug": true
+  "authorization_endpoint": "https://nordicapis.curity.io/oauth/v2/authorize",
+  "token_endpoint": "https://nordicapis.curity.io/oauth/v2/token",
+  "logout_endpoint": "https://nordicapis.curity.io/authn/authenticate/logout",
+  "jwks_uri": "https://nordicapis.curity.io/oauth/v2/metadata/jwks",
+  "issuer": "https://nordicapis.curity.io",
+  "disable_https": true
 }
