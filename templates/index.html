@@ -86,41 +86,43 @@
             <div class="col-md-6">
                 <h2 class="welcome">Welcome <span id="username"></span>!</h2>
                 <ul class="list-group">
-                    {% if user.access_token %}
-                        <li class="list-group-item">Access Token
-                            {% if user.refresh_token %}
-                                <a href="/refresh" class="btn btn-xs btn-info pull-right" id="refresh">refresh</a>
-                            {% endif %}
-                        </li>
-                        <div>
-                            {% if user.access_token_json %}
-                                <pre class="json">{{ user.access_token_json[0] }}</pre>
-                                <pre class="json">{{ user.access_token_json[1] }}</pre>
-                            {% else %}
-                                <pre>{{ user.access_token }}</pre>
-                            {% endif %}
-                        </div>
-                    {% endif %}
+                    {% if user %}
+                        {% if user.access_token %}
+                            <li class="list-group-item">Access Token
+                                {% if user.refresh_token %}
+                                    <a href="/refresh" class="btn btn-xs btn-info pull-right" id="refresh">refresh</a>
+                                {% endif %}
+                            </li>
+                            <div>
+                                {% if user.access_token_json %}
+                                    <pre class="json">{{ user.access_token_json[0] }}</pre>
+                                    <pre class="json">{{ user.access_token_json[1] }}</pre>
+                                {% else %}
+                                    <pre>{{ user.access_token }}</pre>
+                                {% endif %}
+                            </div>
+                        {% endif %}
 
-                    {% if user.id_token %}
-                        <li class="list-group-item">ID Token</li>
-                        <div>
-                            <pre class="json">{{ user.id_token_json[0] }}</pre>
-                            <pre class="json" id="id-token-payload">{{ user.id_token_json[1] }}</pre>
-                        </div>
-                    {% endif %}
+                        {% if user.id_token %}
+                            <li class="list-group-item">ID Token</li>
+                            <div>
+                                <pre class="json">{{ user.id_token_json[0] }}</pre>
+                                <pre class="json" id="id-token-payload">{{ user.id_token_json[1] }}</pre>
+                            </div>
+                        {% endif %}
 
-                    {% if user.refresh_token %}
-                        <div>
-                            <li class="list-group-item">Refresh Token</li>
-                            <pre>{{ user.refresh_token }}</pre>
-                        </div>
+                        {% if user.refresh_token %}
+                            <div>
+                                <li class="list-group-item">Refresh Token</li>
+                                <pre>{{ user.refresh_token }}</pre>
+                            </div>
+                        {% endif %}
                     {% endif %}
                 </ul>
                 {% if error %}
                     <p class="text-danger">{{ error }}</p>
                 {% endif %}
-                {% if user.access_token or user.id_token %}
+                {% if user and ( user.access_token or user.id_token ) %}
                     <div class="btn-group btn-group-justified" role="group">
                         {% if user.refresh_token or user.access_token %}
                             <a class="btn btn-default" type="button" href="/logout">Log out</a>
