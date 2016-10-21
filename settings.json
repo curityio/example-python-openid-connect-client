@@ -1,7 +1,7 @@
 {
   "client_id": "test_client_1",
   "client_secret": "Password1",
-  "redirect_uri": "http://localhost:8000/callback",
+  "redirect_uri": "https://nordicapis-demo.curity.io/callback",
   "port": 8000,
   "scope": "openid",
   "authorization_endpoint": "https://nordicapis.curity.io/oauth/v2/authorize",
