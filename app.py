@@ -227,5 +227,9 @@ if __name__ == '__main__':
         _port = _config['port']
     else:
         _port = 5443
+    _disable_https = 'disable_https' in _config and _config['disable_https']
 
-    _app.run('0.0.0.0', debug=_debug, port=_port, ssl_context=('keys/localhost.pem', 'keys/localhost.pem'))
+    if _disable_https:
+        _app.run('0.0.0.0', debug=_debug, port=_port)
+    else:
+        _app.run('0.0.0.0', debug=_debug, port=_port, ssl_context=('keys/localhost.pem', 'keys/localhost.pem'))
