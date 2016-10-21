@@ -38,24 +38,26 @@ class UserSession:
     access_token_json = None
     id_token_json = None
     name = None
+    api_response = None
 
 
 @_app.route('/')
 def index():
     """
-    :return: the index page, with the tokens if set.
+    :return: the index page with the tokens, if set.
     """
-    user = _session_store.get(session.get('session_id', None), UserSession())
-    if not user:
-        return render_template('index.html', server_name=urlparse(_config['authorization_endpoint']).netloc,
-                               title='Hello sweet world!')
-    if user.id_token:
-        user.id_token_json = decode_token(user.id_token)
-    if user.access_token:
-        user.access_token_json = decode_token(user.access_token)
+    user = None
+    if 'session_id' in session:
+        user = _session_store.get(session['session_id'])
+    if user:
+        if user.id_token:
+            user.id_token_json = decode_token(user.id_token)
+        if user.access_token:
+            user.access_token_json = decode_token(user.access_token)
 
-    return render_template('index.html', server_name=urlparse(_config['authorization_endpoint']).netloc,
-                           user=user)
+    return render_template('index.html',
+                           server_name=urlparse(_config['authorization_endpoint']).netloc,
+                           session=user)
 
 
 @_app.route('/login')
@@ -92,7 +94,7 @@ def refresh():
     try:
         token_data = _client.refresh(user.refresh_token)
     except Exception as e:
-        return create_error("Could not refresh Access Token: %s" % e.message)
+        return create_error("Could not refresh Access Token: %s" % e.msg)
     user.access_token = token_data['access_token']
     user.refresh_token = token_data['refresh_token']
     return redirect_with_baseurl('/')
@@ -108,22 +110,42 @@ def revoke():
         user = _session_store.get(session['session_id'])
         if not user:
             redirect_with_baseurl('/')
-        if user.access_token:
-            try:
-                _client.revoke(user.access_token)
-            except urllib2.URLError as ue:
-                return create_error('Could not revoke token: ' + ue.message)
-            user.access_token = None
 
         if user.refresh_token:
             try:
                 _client.revoke(user.refresh_token)
-            except urllib2.URLError as ue:
-                return create_error('Could not revoke refresh token: ' + ue.message)
-            user.refresh_token = None
-            user.access_token = None
+            except urllib2.URLError as e:
+                return create_error('Could not revoke refresh token: ' + e.msg)
 
-        user.id_token = None
+    return redirect_with_baseurl('/')
+
+
+@_app.route('/call-api')
+def call_api():
+    """
+    Call an api using the Access Token
+    :return: the index template with the data from the api in the parameter 'data'
+    """
+    if 'session_id' in session:
+        user = _session_store.get(session['session_id'])
+        if not user:
+            return redirect_with_baseurl('/')
+        if 'api_endpoint' in _config:
+            if user.access_token:
+                try:
+                    request = urllib2.Request(_config['api_endpoint'])
+                    request.add_header("Authorization", "Bearer %s" % user.access_token)
+                    response = urllib2.urlopen(request)
+                    user.api_response = {'code': response.code, 'data': response.read()}
+                except urllib2.HTTPError as e:
+                    user.api_response = {'code': e.code, 'data': e.read()}
+            else:
+                user.api_response = None
+                print 'No access token in session'
+        else:
+            user.api_response = None
+            print 'No API endpoint configured'
+
     return redirect_with_baseurl('/')
 
 
@@ -185,7 +207,13 @@ def create_error(message):
     """
     print message
     if _app:
-        return render_template('index.html', error=message)
+        user = None
+        if 'session_id' in session:
+            user = _session_store.get(session['session_id'])
+        return render_template('index.html',
+                               server_name=urlparse(_config['authorization_endpoint']).netloc,
+                               session=user,
+                               error=message)
 
 
 def load_config():
