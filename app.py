@@ -94,7 +94,7 @@ def refresh():
     try:
         token_data = _client.refresh(user.refresh_token)
     except Exception as e:
-        return create_error("Could not refresh Access Token: %s" % e.msg)
+        return create_error('Could not refresh Access Token', e)
     user.access_token = token_data['access_token']
     user.refresh_token = token_data['refresh_token']
     return redirect_with_baseurl('/')
@@ -115,7 +115,7 @@ def revoke():
             try:
                 _client.revoke(user.refresh_token)
             except urllib2.URLError as e:
-                return create_error('Could not revoke refresh token: ' + e.msg)
+                return create_error('Could not revoke refresh token', e)
             user.refresh_token = None
 
     return redirect_with_baseurl('/')
@@ -166,7 +166,7 @@ def oauth_callback():
     try:
         token_data = _client.get_token(request.args['code'])
     except Exception as e:
-        return create_error('Could not fetch token: %s' % e.message)
+        return create_error('Could not fetch token(s)', e)
     session.pop('state', None)
 
     # Store in basic server session, since flask session use cookie for storage
@@ -201,13 +201,13 @@ def oauth_callback():
     return redirect_with_baseurl('/')
 
 
-def create_error(message):
+def create_error(message, exception):
     """
     Print the error and output it to the page
     :param message:
     :return: redirects to index.html with the error message
     """
-    print message
+    print message, exception
     if _app:
         user = None
         if 'session_id' in session:
