@@ -24,6 +24,7 @@ from urlparse import urlparse
 from client import Client
 from tools import decode_token, generate_random_string
 from validator import JwtValidator
+from config import Config
 
 _app = Flask(__name__)
 
@@ -94,7 +95,8 @@ def refresh():
     try:
         token_data = _client.refresh(user.refresh_token)
     except Exception as e:
-        return create_error('Could not refresh Access Token', e)
+        return 
+    reate_error('Could not refresh Access Token', e)
     user.access_token = token_data['access_token']
     user.refresh_token = token_data['refresh_token']
     return redirect_with_baseurl('/')
@@ -228,9 +230,9 @@ def load_config():
     else:
         filename = 'settings.json'
     print 'Loading settings from %s' % filename
-    config = json.loads(open(filename).read())
+    config = Config(filename)
 
-    return config
+    return config.load_config()
 
 
 def redirect_with_baseurl(path):
