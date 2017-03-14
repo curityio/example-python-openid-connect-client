@@ -7,7 +7,7 @@ This is a demo application to explain how the OpenID Connect code flow is implem
 $ python app.py
 ```
 
-Flask will start a web server listening on all interfaecs that can be used for demo purposes. The webserver will use HTTPS with a certificate for localhost.
+Flask will start a web server listening on all interfaces that can be used for demo purposes. The webserver will use HTTPS with a certificate for localhost.
 Browse to https://localhost:5443 to see the app.
 
 ## Dependencies
@@ -26,7 +26,7 @@ Name            | Type    | Mandatory | Default  | Description
 `redirect_uri`  | string  |    ✓      |          | The redirect uri to use, must be registered for the client at the OpenID Connect server.
 `client_id`     | string  |    ✓      |          | The id for the client. Used to authenticate the client against the authorization server endpoint.
 `client_secret` | string  |    ✓      |          | The shared secret to use for authentication against the token endpoint.
-`discovery_url` | URL     |    ✓      |          | The URL where the metadata of the sever can be found. Should contain information about the endpoints and keys to be used. Configuration from the discovery url will override configuration from settings.json.
+`discovery_url` | URL     |           |          | The URL where the metadata of the server can be found. Should contain information about the endpoints and keys to be used. Configuration from the discovery url will override configuration from settings.json.
 `scope`         | string  |           | `openid` | The scopes to ask for.
 `jwks_uri`      | URL     | if `discovery_url` is not set and the `openid` scope is requested          |          | The URL that points to the JWK set.
 `authorization_endpoint` | URL | if `discovery_url` is not set     |          | The URL to the authorization_endpoint.
@@ -37,6 +37,26 @@ Name            | Type    | Mandatory | Default  | Description
 `port`          | number  |           | `5443`   | The port that the Flask server should listen to
 `disable_https` | boolean |           | `false`  | Set to true to run on http
 `base_url`      | string  |           |          | base url to be added to internal redirects. Set this to enable the client to be behind a proxy.
+
+## Docker
+To run the example in a Docker container, build an image and run a container like this.:
+
+```bash
+$ docker build -t curityio/openid-python-example
+$ docker run -ti curityio/openid-python-example
+
+```
+All setting can be set using an environment variable with uppercase letters. Example:
+```bash
+$ docker build -t curityio/openid-python-example
+$ docker run -e DEBUG=true -e ISSUER=se.curity -ti curityio/openid-python-example
+```
+## Docker Compose
+In the root of the repository, there is a `docker-compose.yml`. Customize the settings using environment variables with uppercase letters.
+
+```bash
+$ docker-compose up
+```
 
 ## Questions and Support
 
