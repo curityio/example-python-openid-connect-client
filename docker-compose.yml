@@ -1,0 +1,18 @@
+version: '2'
+services:
+  oidc-example:
+    build: .
+    ports:
+      - 5443:5443
+    environment:
+      - DEBUG=true
+      - AUTHORIZATION_ENDPOINT=https://nordicapis.curity.io/oauth/v2/authorize
+      - TOKEN_ENDPOINT=https://nordicapis.curity.io/oauth/v2/token
+      - CLIENT_ID=test_client_1
+      - SCOPE=openid
+      - REVOCATION_ENDPOINT=https://nordicapis.curity.io/oauth/v2/revoke
+      - JWKS_URI=https://nordicapis.curity.io/oauth/v2/metadata/jwks
+      - ISSUER=https://nordicapis.curity.io
+      - CLIENT_SECRET=Password1,
+      - REDIRECT_URI=https://localhost=5443/callback,
+
