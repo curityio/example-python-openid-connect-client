@@ -201,7 +201,7 @@ def oauth_callback():
     return redirect_with_baseurl('/')
 
 
-def create_error(message, exception):
+def create_error(message, exception = None):
     """
     Print the error and output it to the page
     :param message:
