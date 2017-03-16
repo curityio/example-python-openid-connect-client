@@ -95,8 +95,8 @@ def refresh():
     try:
         token_data = _client.refresh(user.refresh_token)
     except Exception as e:
-        return 
-    reate_error('Could not refresh Access Token', e)
+        create_error('Could not refresh Access Token', e)
+        return
     user.access_token = token_data['access_token']
     user.refresh_token = token_data['refresh_token']
     return redirect_with_baseurl('/')
@@ -209,6 +209,7 @@ def create_error(message, exception = None):
     :param message:
     :return: redirects to index.html with the error message
     """
+    print 'Caught error!'
     print message, exception
     if _app:
         user = None
