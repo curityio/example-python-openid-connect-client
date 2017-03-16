@@ -1,5 +1,5 @@
 {
-  "client_id": "test_client_1",
+  "client_id": "client-1",
   "client_secret": "Password1",
   "redirect_uri": "https://localhost:5443/callback",
   "scope": "openid read",
