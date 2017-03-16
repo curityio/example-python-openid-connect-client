@@ -59,5 +59,5 @@ class Config():
         for key in self._keys:
             env = os.environ.get(key.upper(), None)
             if env:
-               from_env[key] = env
+                from_env[key] = env
         self.store.update(from_env)
