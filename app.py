@@ -229,7 +229,6 @@ def load_config():
         filename = sys.argv[1]
     else:
         filename = 'settings.json'
-    print 'Loading settings from %s' % filename
     config = Config(filename)
 
     return config.load_config()
