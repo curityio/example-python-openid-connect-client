@@ -15,11 +15,12 @@
 ##########################################################################
 
 import json
+import urllib2
 from jwkest import BadSignature
 from jwkest.jwk import KEYS
 from jwkest.jws import JWS
-from requests import request
 from tools import base64_urldecode
+from tools import get_ssl_context
 
 
 class JwtValidatorException(Exception):
@@ -28,8 +29,10 @@ class JwtValidatorException(Exception):
 
 class JwtValidator:
     def __init__(self, config):
-        self.verify_ssl_server = 'verify_ssl_server' in config and config['verify_ssl_server']
-        self.jwks_url = config['jwks_uri']
+        print 'Getting ssl context for jwks_uri'
+        self.ctx = get_ssl_context(config)
+
+        self.jwks_uri = config['jwks_uri']
         self.jwks = self.load_keys()
 
     def validate(self, jwt, iss, aud):
@@ -53,16 +56,14 @@ class JwtValidator:
         print "Successfully validated signature."
 
     def get_jwks_data(self):
-        req = request("GET",
-                      self.jwks_url,
-                      allow_redirects=False,
-                      verify=self.verify_ssl_server,
-                      headers={'Accept': "application/json"})
-
-        if req.status_code == 200:
-            return req.text
-        else:
-            raise Exception("HTTP Get error: %s" % req.status_code)
+        request = urllib2.Request(self.jwks_uri)        
+        request.add_header('Accept', 'application/json')
+        try:
+            jwks_response = urllib2.urlopen(request, context=self.ctx)
+        except Exception as e:
+            print "Error fetching JWKS", e
+            raise e
+        return jwks_response.read()
 
     def load_keys(self):
         # load the jwk set.

@@ -15,7 +15,6 @@
 ##########################################################################
 
 import json
-import ssl
 import urllib
 import urllib2
 
@@ -24,20 +23,20 @@ import tools
 
 class Client:
     def __init__(self, config):
-        self.ctx = ssl.create_default_context()
         self.config = config
         self.__init_config()
 
-    def __init_config(self):
-        if 'verify_ssl_server' in self.config and not self.config['verify_ssl_server']:
-            self.ctx.check_hostname = False
-            self.ctx.verify_mode = ssl.CERT_NONE
+        print 'Getting ssl context for oauth server'
+        self.ctx = tools.get_ssl_context(self.config)
 
+
+    def __init_config(self):
         if 'discovery_url' in self.config:
             discovery = urllib2.urlopen(self.config['discovery_url'], context=self.ctx)
             self.config.update(json.loads(discovery.read()))
         else:
             print "No discovery url configured, all endpoints needs to be configured manually"
+
 
         # Mandatory settings
         if 'authorization_endpoint' not in self.config:

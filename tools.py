@@ -17,6 +17,7 @@
 import base64
 import random
 import string
+import ssl
 
 
 def base64_urldecode(string):
@@ -51,3 +52,17 @@ def generate_random_string():
     :return: a 20 character random stringmusing only ascii characters and digits
     """
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(20))
+
+
+def get_ssl_context(config):
+    """
+    :return a ssl context with verify and hostnames settings
+    """
+    ctx = ssl.create_default_context()
+
+    if 'verify_ssl_server' in config and config['verify_ssl_server'].lower() == 'false':
+        print 'Not verifying ssl certificates'
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    return ctx
+
