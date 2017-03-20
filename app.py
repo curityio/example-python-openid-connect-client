@@ -177,14 +177,12 @@ def oauth_callback():
     if 'access_token' in token_data:
         user.access_token = token_data['access_token']
 
-    if 'id_token' in token_data:
+    if _jwt_validator and 'id_token' in token_data:
         # validate JWS; signature, aud and iss.
         # Token type, access token, ref-token and JWT
         if 'issuer' not in _config:
             return create_error('Could not validate token: no issuer configured')
 
-        if not _jwt_validator:
-            return create_error('Could not validate token: no jwks_uri configured')
         try:
             _jwt_validator.validate(token_data['id_token'], _config['issuer'], _config['client_id'])
         except BadSignature as bs:
@@ -250,6 +248,7 @@ if __name__ == '__main__':
         _jwt_validator = JwtValidator(_config)
     else:
         print 'Found no url to JWK set, will not be able to validate JWT signature.'
+        _jwt_validator = None
 
     # create a session store
     _session_store = {}
