@@ -61,7 +61,7 @@ def index():
                            session=user)
 
 
-@_app.route('/login')
+@_app.route('/start-login')
 def start_code_flow():
     """
     :return: redirects to the authorization server with the appropriate parameters set.

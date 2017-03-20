@@ -1,18 +1,16 @@
 version: '2'
 services:
   oidc-example:
-    build: .
+    image: curity/oidc-python-demo:0.1
     ports:
       - 5443:5443
     environment:
-      - DEBUG=true
-      - AUTHORIZATION_ENDPOINT=https://nordicapis.curity.io/oauth/v2/authorize
-      - TOKEN_ENDPOINT=https://nordicapis.curity.io/oauth/v2/token
-      - CLIENT_ID=test_client_1
-      - SCOPE=openid
-      - REVOCATION_ENDPOINT=https://nordicapis.curity.io/oauth/v2/revoke
-      - JWKS_URI=https://nordicapis.curity.io/oauth/v2/metadata/jwks
-      - ISSUER=https://nordicapis.curity.io
-      - CLIENT_SECRET=Password1,
-      - REDIRECT_URI=https://localhost=5443/callback,
+      - AUTHORIZATION_ENDPOINT=https://192.168.1.213:8443/dev/oauth/authorize
+      - TOKEN_ENDPOINT=https://192.168.1.213:8443/dev/oauth/token
+      - REVOCATION_ENDPOINT=https://192.168.1.213:8443/revoke
+      - ISSUER=se.curity
+      - CLIENT_ID=python-client
+      - CLIENT_SECRET=Password1
+      - REDIRECT_URI=https://localhost:5443/callback
+      - VERIFY_SSL_SERVER=false
 
