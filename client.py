@@ -24,10 +24,10 @@ import tools
 class Client:
     def __init__(self, config):
         self.config = config
-        self.__init_config()
-
         print 'Getting ssl context for oauth server'
         self.ctx = tools.get_ssl_context(self.config)
+        self.__init_config()
+
 
 
     def __init_config(self):
