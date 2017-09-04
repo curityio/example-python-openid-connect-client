@@ -20,11 +20,10 @@ import string
 import ssl
 
 
-def base64_urldecode(string):
-    string.replace('-', '+')
-    string.replace('_', '/')
-    string += '=' * (4 - (len(string) % 4))
-    return base64.b64decode(string)
+def base64_urldecode(s):
+    ascii_string = str(s)
+    ascii_string += '=' * (4 - (len(ascii_string) % 4))
+    return base64.urlsafe_b64decode(ascii_string)
 
 
 def decode_token(token):
@@ -34,14 +33,10 @@ def decode_token(token):
     :param token:
     :return: A decoded jwt, or None if its not a JWT
     """
-    if token and len(token.split('.')) == 3:
-        header = token.split('.')[0]
-        header += '=' * (4 - len(header) % 4)
+    parts = token.split('.')
 
-        payload = token.split('.')[1]
-        payload += '=' * (4 - len(payload) % 4)
-
-        return base64.b64decode(header), base64.b64decode(payload)
+    if token and len(parts) == 3:
+        return base64_urldecode(parts[0]), base64_urldecode(parts[1])
 
     # It's not a JWT
     return None
