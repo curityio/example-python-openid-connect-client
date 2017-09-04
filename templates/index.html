@@ -125,7 +125,7 @@
             {% if not session %}
                 <p class="text-default">This is a demo application to demonstrate the use for OAuth2 and OpenID Connect. </p>
 
-                <p class="text-default">Pressing Sign In will redirect you to {{ server_name }} and authorize
+                <p class="text-default">Pressing Sign In will redirect you to {{ server_name | e }} and authorize
                     the application python-flask to access your profile info. The data will only be used to
                     demonstrate
                     the possibilities of the OpenID Connect
@@ -140,19 +140,19 @@
                         <li class="list-group-item">
                             API Response
                             <span class="label pull-right" id="api-response-status-code">
-                               {{ session.api_response.code }}
+                               {{ session.api_response.code | e }}
                             </span>
                         </li>
                         <div>
-                            <pre class="json hidden" id="api-response-data">{{ session.api_response['data'] }}</pre>
+                            <pre class="json hidden" id="api-response-data">{{ session.api_response['data'] | e }}</pre>
                         </div>
                     {% endif %}
 
                     {% if session.id_token %}
                         <li class="list-group-item">ID Token</li>
                         <div>
-                            <pre class="json hidden">{{ session.id_token_json[0] }}</pre>
-                            <pre class="json hidden" id="id-token-payload">{{ session.id_token_json[1] }}</pre>
+                            <pre class="json hidden">{{ session.id_token_json[0] | e }}</pre>
+                            <pre class="json hidden" id="id-token-payload">{{ session.id_token_json[1] | e }}</pre>
                         </div>
                     {% endif %}
 
@@ -164,10 +164,10 @@
                         </li>
                         <div>
                             {% if session.access_token_json %}
-                                <pre class="json hidden">{{ session.access_token_json[0] }}</pre>
-                                <pre class="json hidden">{{ session.access_token_json[1] }}</pre>
+                                <pre class="json hidden">{{ session.access_token_json[0] | e }}</pre>
+                                <pre class="json hidden">{{ session.access_token_json[1] | e }}</pre>
                             {% else %}
-                                <pre>{{ session.access_token }}</pre>
+                                <pre>{{ session.access_token | e }}</pre>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -177,7 +177,7 @@
                             <li class="list-group-item">Refresh Token
                                 <a href="/revoke" class="btn btn-xs btn-danger pull-right">revoke</a>
                             </li>
-                            <pre>{{ session.refresh_token }}</pre>
+                            <pre>{{ session.refresh_token | e }}</pre>
                         </div>
                     {% endif %}
                 </ul>
