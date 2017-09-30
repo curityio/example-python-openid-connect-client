@@ -66,7 +66,7 @@ def start_code_flow():
     """
     :return: redirects to the authorization server with the appropriate parameters set.
     """
-    login_url = _client.get_authn_req_url(session)
+    login_url = _client.get_authn_req_url(session, request.args.get("acr", None), request.args.get("forceAuthN", False))
     return redirect(login_url)
 
 
@@ -139,10 +139,13 @@ def call_api():
                 try:
                     request = urllib2.Request(_config['api_endpoint'])
                     request.add_header("Authorization", "Bearer %s" % user.access_token)
+                    request.add_header("Accept", 'application/jwt, application/json;q=0.9')
                     response = urllib2.urlopen(request)
                     user.api_response = {'code': response.code, 'data': response.read()}
                 except urllib2.HTTPError as e:
                     user.api_response = {'code': e.code, 'data': e.read()}
+                except Exception as e:
+                    user.api_response = {"code": "unknown error", "data": e.message }
             else:
                 user.api_response = None
                 print 'No access token in session'
