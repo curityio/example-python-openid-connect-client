@@ -139,7 +139,7 @@ def call_api():
                 try:
                     request = urllib2.Request(_config['api_endpoint'])
                     request.add_header("Authorization", "Bearer %s" % user.access_token)
-                    request.add_header("Accept", 'application/jwt, application/json;q=0.9')
+                    request.add_header("Accept", 'application/json')
                     response = urllib2.urlopen(request)
                     user.api_response = {'code': response.code, 'data': response.read()}
                 except urllib2.HTTPError as e:
