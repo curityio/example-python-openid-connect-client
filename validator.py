@@ -44,8 +44,11 @@ class JwtValidator:
 
         if iss != payload['iss']:
             raise JwtValidatorException("Invalid issuer %s, expected %s" % (payload['iss'], iss))
-        if aud not in payload['aud']:
-            raise JwtValidatorException("Invalid audience %s, expected %s" % (payload['aud'], aud))
+
+        if payload["aud"]:
+            if (isinstance(payload["aud"], str) and payload["aud"] != aud) or aud not in payload['aud']:
+                raise JwtValidatorException("Invalid audience %s, expected %s" % (payload['aud'], aud))
+
         jws = JWS(alg=header['alg'])
         # Raises exception when signature is invalid
         try:
