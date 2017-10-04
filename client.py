@@ -86,7 +86,7 @@ class Client:
         token_response = urllib2.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
         return json.loads(token_response.read())
 
-    def get_authn_req_url(self, session):
+    def get_authn_req_url(self, session, acr, forceAuthN):
         """
         :param session: the session, will be used to keep the OAuth state
         :return redirect url for the OAuth code flow
@@ -94,6 +94,8 @@ class Client:
         state = tools.generate_random_string()
         session['state'] = state
         request_args = self.__authn_req_args(state)
+        if acr: request_args["acr_values"] = acr
+        if forceAuthN: request_args["prompt"] = "login"
         login_url = "%s?%s" % (self.config['authorization_endpoint'], urllib.urlencode(request_args))
         print "Redirect to federation service %s" % login_url
         return login_url
