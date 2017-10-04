@@ -94,8 +94,8 @@ class Client:
         state = tools.generate_random_string()
         session['state'] = state
         request_args = self.__authn_req_args(state)
-        if acr: request_args["acr"] = acr
-        if forceAuthN: request_args["forceAuthN"] = "true"
+        if acr: request_args["acr_values"] = acr
+        if forceAuthN: request_args["prompt"] = "login"
         login_url = "%s?%s" % (self.config['authorization_endpoint'], urllib.urlencode(request_args))
         print "Redirect to federation service %s" % login_url
         return login_url
