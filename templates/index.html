@@ -94,15 +94,22 @@
     </script>
 </head>
 <body>
-<div class="navbar">
-    <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-md-6">
-            <a href="/"><img src="{{ url_for('static', filename='logo.png') }}"/></a>
-        </div>
-        <div class="col-md-3"></div>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">
+          <img alt="Brand" style="width:100px;" src="{{ url_for('static', filename='oauth-logo.png') }}">
+        </a>
+      </div>
+      <ul class="nav navbar-nav navbar-right">
+        {% if session %}
+        <li><a href="/link">Link with Facebook</a></li>
+        {% endif %}
+        <li><a href="/logout">Logout</a></li>
+      </ul>
     </div>
-</div>
+  </nav>
+
 <div class="container-fluid">
     {% if error %}
         <div class="row">
@@ -115,25 +122,14 @@
     {% endif %}
     <div class="row">
         <div class="col-md-3"></div>
-        <div class="col-md-6">
+        <div class="col-md-5">
             <h2 class="welcome">Welcome <span id="sessionname"></span>!</h2>
         </div>
     </div>
     <div class="row">
         <div class="col-md-3"></div>
         <div class="col-md-6">
-            {% if not session %}
-                <p class="text-default">This is a demo application to demonstrate the use for OAuth2 and OpenID Connect. </p>
 
-                <p class="text-default">Pressing Sign In will redirect you to {{ server_name | e }} and authorize
-                    the application python-flask to access your profile info. The data will only be used to
-                    demonstrate
-                    the possibilities of the OpenID Connect
-                    protocol and will not be stored. Be sure to revoke access when you are satisfied.</p>
-                <div class="center-block">
-                    <a class="btn btn-primary center-block" style="display: block; width: 200px" role="button" href="/start-login">Sign In</a>
-                </div>
-            {% elif not error %}
                 <ul class="list-group">
                     {% if session.api_response %}
                         <li class="list-group-item">
@@ -164,7 +160,7 @@
                         <div>
                             {% if session.access_token_json %}
                                 <pre class="json hidden">{{ session.access_token_json[0] | e }}</pre>
-                                <pre class="json hidden">{{ session.access_token_json[1] | e }}</pre>
+                                <pre class="json hidden">{{ session.access_token_json[1] | e }}</pre>
                             {% else %}
                                 <pre>{{ session.access_token | e }}</pre>
                             {% endif %}
@@ -180,19 +176,18 @@
                         </div>
                     {% endif %}
                 </ul>
-            {% endif %}
         </div>
         <div class="col-md-3"></div>
     </div>
-    <div class="row" style="margin-bottom: 2em">
+    <div class="row">
         <div class="col-md-3"></div>
         <div class="col-md-6">
             {% if session %}
-                {% if not error %}
-                    <div class="btn-group btn-group-justified mb" role="group">
-                        <a href="/call-api" class="btn btn-default" type="button">Request data from api</a>
-                    </div>
-                {%  endif %}
+              {% if not error %}
+                <div class="btn-group btn-group-justified mb" role="group">
+                    <a href="/call-api" class="btn btn-default" type="button">Request data from api</a>
+                </div>
+              {%  endif %}
                 <form action="/start-login" method="get">
                     <div class="form-group">
                         <input type="text" class="form-control" name="acr" id="acr" placeholder="Authentication class context reference (ACR)">
@@ -205,10 +200,11 @@
                     </div>
                 </form>
                 <div class="btn-group btn-group-justified" role="group">
-                    <a class="btn btn-primary" type="button" href="/logout">Log out</a>
+                    <a class="btn btn-default" type="button" href="/logout">Log out</a>
                 </div>
             {% endif %}
         </div>
+        <div class="col-md-3"></div>
     </div>
 </div>
 </body>

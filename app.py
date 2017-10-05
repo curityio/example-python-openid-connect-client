@@ -48,17 +48,22 @@ def index():
     :return: the index page with the tokens, if set.
     """
     user = None
+    is_logged_in = False
     if 'session_id' in session:
         user = _session_store.get(session['session_id'])
     if user:
+        is_logged_in = True
         if user.id_token:
             user.id_token_json = decode_token(user.id_token)
         if user.access_token:
             user.access_token_json = decode_token(user.access_token)
 
-    return render_template('index.html',
-                           server_name=urlparse(_config['authorization_endpoint']).netloc,
-                           session=user)
+    if is_logged_in:
+        return render_template('index.html',
+                            server_name=urlparse(_config['authorization_endpoint']).netloc,
+                            session=user)
+    else:
+        return render_template('welcome.html')
 
 
 @_app.route('/start-login')
