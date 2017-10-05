@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (C) 2016 Curity AB.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenID Connect Demo</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"
+            integrity="sha256-/SIrNqv8h6QGKDuNoLGA4iret+kyesCkHGzVUUV0shc=" crossorigin="anonymous"></script>
+
+    <style type="text/css">
+        .navbar img {
+            max-width: 500px;
+        }
+
+        .navbar {
+            text-align: center;
+        }
+
+        .label {
+            font-size: 90%;
+            line-height: 1.2;
+            font-weight: 400;
+        }
+
+        .mb {
+            margin-bottom: 12px;
+        }
+    </style>
+
+    <script type="application/javascript">
+        function prettyJson(text) {
+            var token;
+            try {
+                token = JSON.parse(text);
+            } catch (e) {
+                // not json
+                return;
+            }
+            return JSON.stringify(token, null, 2);
+        }
+
+        $('document').ready(function () {
+            $('.list-group li').click(function () {
+                $(this).next().toggleClass('hidden');
+            });
+
+            var idPayload = $('#id-token-payload').text();
+            if (idPayload !== '') {
+                var idToken = JSON.parse(idPayload);
+                if (typeof idToken['sub'] !== 'undefined') {
+                    $('#sessionname').text(idToken['sub']);
+                }
+            }
+            else {
+                $('.welcome').addClass('hidden');
+            }
+
+            var apiStatusCode = $('#api-response-status-code');
+            if (apiStatusCode.length > 0 && apiStatusCode.text().trim() === '200') {
+                apiStatusCode.addClass('label-success');
+            } else {
+                apiStatusCode.addClass('label-danger').removeClass('label-success');
+                $('#api-response-data').addClass('alert').addClass('alert-danger');
+            }
+
+            $('.btn').click(function (event) {
+                event.stopPropagation();
+            });
+
+            $('.json').each(function () {
+                $(this).text(prettyJson($(this).text()));
+                $(this).removeClass('hidden');
+            });
+        });
+
+    </script>
+</head>
+<body>
+<div class="navbar">
+    <br/>
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <a href="/"><img src="{{ url_for('static', filename='oauth-logo.png') }}"/></a>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-5">
+            <h2 class="welcome">Welcome <span id="sessionname"></span>!</h2>
+        </div>
+    </div>
+    <div class="row jumbotron">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+                <h2>This is a demo application to demonstrate the use for OAuth2 and OpenID Connect. </h2>
+
+                <p>Pressing Sign In will redirect you to {{ server_name | e }} and authorize
+                    the application python-flask to access your profile info. The data will only be used to
+                    demonstrate
+                    the possibilities of the OpenID Connect
+                    protocol and will not be stored. Be sure to revoke access when you are satisfied.</p>
+                <a class="btn btn-info" role="button" href="/start-login">Sign In</a>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+    <div class="row text-center">
+      <p>Copyright Curity AB 2017</p>
+      <a href="https://curity.io">Visit Curity.io for more information</a>
+    </div>
+
+</div>
+</body>
+</html>
