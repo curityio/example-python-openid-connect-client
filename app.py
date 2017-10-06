@@ -143,7 +143,10 @@ def call_api():
             if user.access_token:
                 try:
                     request = urllib2.Request(_config['api_endpoint'])
-                    request.add_header("Authorization", "Bearer %s" % user.access_token)
+
+                    # Assignment 4
+                    # Add the access token to the request
+
                     request.add_header("Accept", 'application/json')
                     response = urllib2.urlopen(request)
                     user.api_response = {'code': response.code, 'data': response.read()}
@@ -192,7 +195,10 @@ def oauth_callback():
             return create_error('Could not validate token: no issuer configured')
 
         try:
-            _jwt_validator.validate(token_data['id_token'], _config['issuer'], _config['client_id'])
+
+            # Assignment 5
+            # validate JWS; signature, aud and iss.
+
         except BadSignature as bs:
             return create_error('Could not validate token: %s' % bs.message)
         except Exception as ve:
