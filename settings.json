@@ -10,5 +10,6 @@
   "jwks_uri": "https://nordicapis.curity.io/~/jwks",
   "issuer": "https://nordicapis.curity.io/~",
   "api_endpoint": "https://nordicapis-api.curity.io/hello_world",
-  "base_url": "https://localhost:5443"
+  "base_url": "https://localhost:5443",
+  "verify_ssl_server": true
 }

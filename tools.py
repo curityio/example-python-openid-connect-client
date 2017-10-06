@@ -55,7 +55,7 @@ def get_ssl_context(config):
     """
     ctx = ssl.create_default_context()
 
-    if 'verify_ssl_server' in config and config['verify_ssl_server'].lower() == 'false':
+    if 'verify_ssl_server' in config and not bool(config['verify_ssl_server']):
         print 'Not verifying ssl certificates'
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
