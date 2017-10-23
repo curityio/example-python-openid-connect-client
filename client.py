@@ -63,13 +63,12 @@ class Client:
             print 'No revocation endpoint set'
             return
 
-        revoke_request = urllib2.Request(self.config['revocation_endpoint'])
         data = {
             'token': token,
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-        self.requestopen(revoke_request, urllib.urlencode(data), context=self.ctx)
+        self.urlopen(self.config['revocation_endpoint'], urllib.urlencode(data), context=self.ctx)
 
     def refresh(self, refresh_token):
         """
@@ -134,18 +133,6 @@ class Client:
         request = urllib2.Request(url, data, headers)
         return urllib2.urlopen(request, context=context)
 
-    def requestopen(self, request, data=None, context=None):
-        """
-        Open a connection to the specified url. Sets valid requests headers.
-        :param request: Request to open 
-        :data: data to send, optional
-        :context: ssl context
-        :return the request response
-        """
-
-        request.add_header('User-Agent', 'CurityExample/1.0')
-        request.add_header('Accept', 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8')
-        return urllib2.urlopen(request, context=context)
 
     def __authn_req_args(self, state):
         """
