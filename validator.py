@@ -61,6 +61,8 @@ class JwtValidator:
     def get_jwks_data(self):
         request = urllib2.Request(self.jwks_uri)        
         request.add_header('Accept', 'application/json')
+        request.add_header('User-Agent', 'CurityExample/1.0')
+
         try:
             jwks_response = urllib2.urlopen(request, context=self.ctx)
         except Exception as e:
