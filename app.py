@@ -143,6 +143,7 @@ def call_api():
             if user.access_token:
                 try:
                     request = urllib2.Request(_config['api_endpoint'])
+                    request.add_header('User-Agent', 'CurityExample/1.0')
                     request.add_header("Authorization", "Bearer %s" % user.access_token)
                     request.add_header("Accept", 'application/json')
                     response = urllib2.urlopen(request)

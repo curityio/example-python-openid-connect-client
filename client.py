@@ -32,7 +32,7 @@ class Client:
 
     def __init_config(self):
         if 'discovery_url' in self.config:
-            discovery = urllib2.urlopen(self.config['discovery_url'], context=self.ctx)
+            discovery = self.urlopen(self.config['discovery_url'], context=self.ctx)
             self.config.update(json.loads(discovery.read()))
         else:
             print "No discovery url configured, all endpoints needs to be configured manually"
@@ -63,13 +63,12 @@ class Client:
             print 'No revocation endpoint set'
             return
 
-        revoke_request = urllib2.Request(self.config['revocation_endpoint'])
         data = {
             'token': token,
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-        urllib2.urlopen(revoke_request, urllib.urlencode(data), context=self.ctx)
+        self.urlopen(self.config['revocation_endpoint'], urllib.urlencode(data), context=self.ctx)
 
     def refresh(self, refresh_token):
         """
@@ -83,7 +82,7 @@ class Client:
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-        token_response = urllib2.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
+        token_response = self.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
         return json.loads(token_response.read())
 
     def get_authn_req_url(self, session, acr, forceAuthN):
@@ -112,11 +111,28 @@ class Client:
 
         # Exchange code for tokens
         try:
-            token_response = urllib2.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
+            token_response = self.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
         except urllib2.URLError as te:
             print "Could not exchange code for tokens"
             raise te
         return json.loads(token_response.read())
+
+    def urlopen(self, url, data=None, context=None):
+        """
+        Open a connection to the specified url. Sets valid requests headers.
+        :param url: url to open - cannot be a request object 
+        :data: data to send, optional
+        :context: ssl context
+        :return the request response
+        """
+        headers = {
+            'User-Agent': 'CurityExample/1.0',
+            'Accept': 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
+        }
+        
+        request = urllib2.Request(url, data, headers)
+        return urllib2.urlopen(request, context=context)
+
 
     def __authn_req_args(self, state):
         """

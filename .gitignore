@@ -1,4 +1,9 @@
 
+startup.bat
+startup.sh
+startup_docker.bat
+startup_docker.sh
+
 # Created by https://www.gitignore.io/api/python,intellij+iml
 
 ### Python ###
