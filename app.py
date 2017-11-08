@@ -151,7 +151,8 @@ def call_api():
                 except urllib2.HTTPError as e:
                     user.api_response = {'code': e.code, 'data': e.read()}
                 except Exception as e:
-                    user.api_response = {"code": "unknown error", "data": e.message }
+                    message = e.message if len(e.message) > 0 else "unknown error"
+                    user.api_response = {"code": "unknown error", "data": message}
             else:
                 user.api_response = None
                 print 'No access token in session'
