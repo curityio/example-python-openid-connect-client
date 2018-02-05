@@ -71,7 +71,13 @@ def start_code_flow():
     """
     :return: redirects to the authorization server with the appropriate parameters set.
     """
-    login_url = _client.get_authn_req_url(session, request.args.get("acr", None), request.args.get("forceAuthN", False))
+    provided_scopes = request.args.get("scope")
+    default_scopes = _client.config['scope']
+    scopes = provided_scopes if provided_scopes else default_scopes
+
+    login_url = _client.get_authn_req_url(session, request.args.get("acr", None),
+                                          request.args.get("forceAuthN", False),
+                                          scopes)
     return redirect(login_url)
 
 

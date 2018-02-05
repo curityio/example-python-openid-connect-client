@@ -85,14 +85,14 @@ class Client:
         token_response = self.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
         return json.loads(token_response.read())
 
-    def get_authn_req_url(self, session, acr, forceAuthN):
+    def get_authn_req_url(self, session, acr, forceAuthN, scope):
         """
         :param session: the session, will be used to keep the OAuth state
         :return redirect url for the OAuth code flow
         """
         state = tools.generate_random_string()
         session['state'] = state
-        request_args = self.__authn_req_args(state)
+        request_args = self.__authn_req_args(state, scope)
         if acr: request_args["acr_values"] = acr
         if forceAuthN: request_args["prompt"] = "login"
         login_url = "%s?%s" % (self.config['authorization_endpoint'], urllib.urlencode(request_args))
@@ -134,12 +134,12 @@ class Client:
         return urllib2.urlopen(request, context=context)
 
 
-    def __authn_req_args(self, state):
+    def __authn_req_args(self, state, scope):
         """
         :param state: state to send to authorization server
         :return a map of arguments to be sent to the authz endpoint
         """
-        args = {'scope': self.config['scope'],
+        args = {'scope': scope,
                 'response_type': 'code',
                 'client_id': self.config['client_id'],
                 'state': state,
