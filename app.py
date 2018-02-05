@@ -181,8 +181,11 @@ def oauth_callback():
     if 'code' not in request.args:
         return create_error('No code in response')
 
+    if "code_verifier" not in session:
+        return create_error("No code_verifier in session")
+
     try:
-        token_data = _client.get_token(request.args['code'])
+        token_data = _client.get_token(request.args['code'], session["code_verifier"])
     except Exception as e:
         return create_error('Could not fetch token(s)', e)
     session.pop('state', None)
