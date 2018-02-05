@@ -200,7 +200,7 @@ def oauth_callback():
             return create_error('Could not validate token: no issuer configured')
 
         try:
-            _jwt_validator.validate(token_data['id_token'], _config['issuer'], _config['client_id'])
+            _jwt_validator.validate(token_data['id_token'], _config['issuer'], _config['audience'])
         except BadSignature as bs:
             return create_error('Could not validate token: %s' % bs.message)
         except Exception as ve:
