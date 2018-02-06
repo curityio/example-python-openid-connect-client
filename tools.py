@@ -26,6 +26,10 @@ def base64_urldecode(s):
     return base64.urlsafe_b64decode(ascii_string)
 
 
+def base64_urlencode(s):
+    return base64.urlsafe_b64encode(s).split("=")[0].replace('+', '-').replace('/', '_')
+
+
 def decode_token(token):
     """
     Decode a jwt into readable format.
@@ -42,11 +46,11 @@ def decode_token(token):
     return None
 
 
-def generate_random_string():
+def generate_random_string(size=20):
     """
-    :return: a 20 character random stringmusing only ascii characters and digits
+    :return: a random string with a default size of 20 bytes using only ascii characters and digits
     """
-    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(20))
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
 
 
 def get_ssl_context(config):

@@ -71,7 +71,13 @@ def start_code_flow():
     """
     :return: redirects to the authorization server with the appropriate parameters set.
     """
-    login_url = _client.get_authn_req_url(session, request.args.get("acr", None), request.args.get("forceAuthN", False))
+    provided_scopes = request.args.get("scope")
+    default_scopes = _client.config['scope']
+    scopes = provided_scopes if provided_scopes else default_scopes
+
+    login_url = _client.get_authn_req_url(session, request.args.get("acr", None),
+                                          request.args.get("forceAuthN", False),
+                                          scopes)
     return redirect(login_url)
 
 
@@ -175,8 +181,11 @@ def oauth_callback():
     if 'code' not in request.args:
         return create_error('No code in response')
 
+    if "code_verifier" not in session:
+        return create_error("No code_verifier in session")
+
     try:
-        token_data = _client.get_token(request.args['code'])
+        token_data = _client.get_token(request.args['code'], session["code_verifier"])
     except Exception as e:
         return create_error('Could not fetch token(s)', e)
     session.pop('state', None)
@@ -194,7 +203,7 @@ def oauth_callback():
             return create_error('Could not validate token: no issuer configured')
 
         try:
-            _jwt_validator.validate(token_data['id_token'], _config['issuer'], _config['client_id'])
+            _jwt_validator.validate(token_data['id_token'], _config['issuer'], _config['audience'])
         except BadSignature as bs:
             return create_error('Could not validate token: %s' % bs.message)
         except Exception as ve:

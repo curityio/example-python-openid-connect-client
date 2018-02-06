@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
+import hashlib
 
 import json
 import urllib
@@ -85,27 +86,32 @@ class Client:
         token_response = self.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
         return json.loads(token_response.read())
 
-    def get_authn_req_url(self, session, acr, forceAuthN):
+    def get_authn_req_url(self, session, acr, forceAuthN, scope):
         """
         :param session: the session, will be used to keep the OAuth state
         :return redirect url for the OAuth code flow
         """
         state = tools.generate_random_string()
         session['state'] = state
-        request_args = self.__authn_req_args(state)
+        session['code_verifier'] = code_verifier = tools.generate_random_string(100)
+
+        code_challenge = tools.base64_urlencode(hashlib.sha256(code_verifier).digest())
+
+        request_args = self.__authn_req_args(state, scope, code_challenge, "S256")
         if acr: request_args["acr_values"] = acr
         if forceAuthN: request_args["prompt"] = "login"
         login_url = "%s?%s" % (self.config['authorization_endpoint'], urllib.urlencode(request_args))
         print "Redirect to federation service %s" % login_url
         return login_url
 
-    def get_token(self, code):
+    def get_token(self, code, code_verifier):
         """
         :param code: The authorization code to use when getting tokens
         :return the json response containing the tokens
         """
         data = {'client_id': self.config['client_id'], "client_secret": self.config['client_secret'],
                 'code': code,
+                "code_verifier": code_verifier,
                 'redirect_uri': self.config['redirect_uri'],
                 'grant_type': 'authorization_code'}
 
@@ -134,15 +140,17 @@ class Client:
         return urllib2.urlopen(request, context=context)
 
 
-    def __authn_req_args(self, state):
+    def __authn_req_args(self, state, scope, code_challenge, code_challenge_method="plain"):
         """
         :param state: state to send to authorization server
         :return a map of arguments to be sent to the authz endpoint
         """
-        args = {'scope': self.config['scope'],
+        args = {'scope': scope,
                 'response_type': 'code',
                 'client_id': self.config['client_id'],
                 'state': state,
+                'code_challenge': code_challenge,
+                'code_challenge_method': code_challenge_method,
                 'redirect_uri': self.config['redirect_uri']}
 
         if 'authn_parameters' in self.config:
