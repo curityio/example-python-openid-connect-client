@@ -17,7 +17,7 @@
 import json
 import urllib2
 from jwkest import BadSignature
-from jwkest.jwk import KEYS
+from jwkest.jwk import SYMKey, KEYS
 from jwkest.jws import JWS
 from tools import base64_urldecode
 from tools import get_ssl_context
@@ -33,6 +33,7 @@ class JwtValidator:
         self.ctx = get_ssl_context(config)
 
         self.jwks_uri = config['jwks_uri']
+        self.client_secret = config['client_secret'] 
         self.jwks = self.load_keys()
 
     def validate(self, jwt, iss, aud):
@@ -74,4 +75,6 @@ class JwtValidator:
         # load the jwk set.
         jwks = KEYS()
         jwks.load_jwks(self.get_jwks_data())
+        key = SYMKey(key=self.client_secret)
+        jwks.append(key)
         return jwks
