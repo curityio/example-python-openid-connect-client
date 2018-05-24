@@ -244,6 +244,7 @@ def load_config():
     :return:
     """
     if len(sys.argv) > 1:
+        print "Using an alternative config file: %s" % sys.argv[1]
         filename = sys.argv[1]
     else:
         filename = 'settings.json'
