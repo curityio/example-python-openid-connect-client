@@ -155,6 +155,7 @@
                             {% if session.access_token_json %}
                                 <pre class="json hidden">{{ session.access_token_json[0] | e }}</pre>
                                 <pre class="json hidden">{{ session.access_token_json[1] | e }}</pre>
+                                <pre>{{ session.access_token }}</pre>
                             {% else %}
                                 <pre>{{ session.access_token | e }}</pre>
                             {% endif %}
