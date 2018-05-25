@@ -100,7 +100,7 @@ class Client:
         request_args = self.__authn_req_args(state, scope, code_challenge, "S256")
         if acr: request_args["acr_values"] = acr
         if forceAuthN: request_args["prompt"] = "login"
-        delimiter = "?" if self.config['authorization_endpoint'].contains("?") else "&"
+        delimiter = "?" if self.config['authorization_endpoint'].find("?") < 0 else "&"
         login_url = "%s%s%s" % (self.config['authorization_endpoint'], delimiter, urllib.urlencode(request_args))
         print "Redirect to federation service %s" % login_url
         return login_url
