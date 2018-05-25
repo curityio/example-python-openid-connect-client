@@ -29,6 +29,7 @@ class Config():
             'disable_https',
             'discovery_url',
             'issuer',
+            'audience',
             'jwks_uri',
             'logout_endpoint',
             'port',
