@@ -52,7 +52,7 @@ class Config():
         return self.store
 
     def _load_from_file(self, filename):
-        print 'Loading settings from %s' % filename
+        print('Loading settings from %s' % filename)
         self.store = json.loads(open(filename).read())
 
     def _update_config_from_environment(self):

@@ -15,7 +15,7 @@
 ##########################################################################
 
 import json
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from jwkest import BadSignature
 from jwkest.jwk import KEYS
 from jwkest.jws import JWS
@@ -29,7 +29,7 @@ class JwtValidatorException(Exception):
 
 class JwtValidator:
     def __init__(self, config):
-        print 'Getting ssl context for jwks_uri'
+        print('Getting ssl context for jwks_uri')
         self.ctx = get_ssl_context(config)
 
         self.jwks_uri = config['jwks_uri']
@@ -54,19 +54,19 @@ class JwtValidator:
         try:
             jws.verify_compact(jwt, self.jwks)
         except Exception as e:
-            print "Exception validating signature"
+            print("Exception validating signature")
             raise JwtValidatorException(e)
-        print "Successfully validated signature."
+        print("Successfully validated signature.")
 
     def get_jwks_data(self):
-        request = urllib2.Request(self.jwks_uri)        
+        request = urllib.request.Request(self.jwks_uri)        
         request.add_header('Accept', 'application/json')
         request.add_header('User-Agent', 'CurityExample/1.0')
 
         try:
-            jwks_response = urllib2.urlopen(request, context=self.ctx)
+            jwks_response = urllib.request.urlopen(request, context=self.ctx)
         except Exception as e:
-            print "Error fetching JWKS", e
+            print("Error fetching JWKS", e)
             raise e
         return jwks_response.read()
 

@@ -12,5 +12,6 @@
   "issuer": "https://nordicapis.curity.io/~",
   "api_endpoint": "https://nordicapis-api.curity.io/hello_world",
   "base_url": "https://localhost:5443",
-  "verify_ssl_server": true
+  "verify_ssl_server": true,
+  "debug": true
 }

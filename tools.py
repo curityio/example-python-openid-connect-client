@@ -27,7 +27,7 @@ def base64_urldecode(s):
 
 
 def base64_urlencode(s):
-    return base64.urlsafe_b64encode(s).split("=")[0].replace('+', '-').replace('/', '_')
+    return base64.urlsafe_b64encode(s).split("=")[0]
 
 
 def decode_token(token):
@@ -60,7 +60,7 @@ def get_ssl_context(config):
     ctx = ssl.create_default_context()
 
     if 'verify_ssl_server' in config and not bool(config['verify_ssl_server']):
-        print 'Not verifying ssl certificates'
+        print('Not verifying ssl certificates')
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
     return ctx
