@@ -30,14 +30,12 @@ class Client:
         self.ctx = tools.get_ssl_context(self.config)
         self.__init_config()
 
-
     def __init_config(self):
         if 'discovery_url' in self.config:
             discovery = self.urlopen(self.config['discovery_url'], context=self.ctx)
             self.config.update(json.loads(discovery.read()))
         else:
             print("No discovery url configured, all endpoints needs to be configured manually")
-
 
         # Mandatory settings
         if 'authorization_endpoint' not in self.config:
@@ -136,10 +134,9 @@ class Client:
             'User-Agent': 'CurityExample/1.0',
             'Accept': 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
         }
-        
+
         request = urllib.request.Request(url, data, headers)
         return urllib.request.urlopen(request, context=context)
-
 
     def __authn_req_args(self, state, scope, code_challenge, code_challenge_method="plain"):
         """
