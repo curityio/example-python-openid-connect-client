@@ -205,9 +205,9 @@ def oauth_callback():
         try:
             _jwt_validator.validate(token_data['id_token'], _config['issuer'], _config['audience'])
         except BadSignature as bs:
-            return create_error('Could not validate token: %s' % bs.message)
+            return create_error('Could not validate token: %s' % bs)
         except Exception as ve:
-            return create_error("Unexpected exception: %s" % ve.message)
+            return create_error('Unexpected exception: %s' % ve)
 
         user.id_token = token_data['id_token']
 
