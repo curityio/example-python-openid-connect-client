@@ -16,8 +16,8 @@
 
 import base64
 import random
-import string
 import ssl
+import string
 
 
 def base64_urldecode(s):
@@ -65,4 +65,3 @@ def get_ssl_context(config):
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
     return ctx
-

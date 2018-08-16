@@ -14,17 +14,18 @@
 # limitations under the License.
 ##########################################################################
 
-import json
 import sys
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
+
 from flask import redirect, request, render_template, session, Flask
 from jwkest import BadSignature
-from urllib.parse import urlparse
 
 from client import Client
+from config import Config
 from tools import decode_token, generate_random_string
 from validator import JwtValidator
-from config import Config
 
 _app = Flask(__name__)
 
@@ -60,8 +61,8 @@ def index():
 
     if is_logged_in:
         return render_template('index.html',
-                            server_name=urlparse(_config['authorization_endpoint']).netloc,
-                            session=user)
+                               server_name=urllib.parse.urlparse(_config['authorization_endpoint']).netloc,
+                               session=user)
     else:
         return render_template('welcome.html')
 
@@ -219,7 +220,7 @@ def oauth_callback():
     return redirect_with_baseurl('/')
 
 
-def create_error(message, exception = None):
+def create_error(message, exception=None):
     """
     Print the error and output it to the page
     :param message:
@@ -232,7 +233,7 @@ def create_error(message, exception = None):
         if 'session_id' in session:
             user = _session_store.get(session['session_id'])
         return render_template('index.html',
-                               server_name=urlparse(_config['authorization_endpoint']).netloc,
+                               server_name=urllib.parse.urlparse(_config['authorization_endpoint']).netloc,
                                session=user,
                                error=message)
 
