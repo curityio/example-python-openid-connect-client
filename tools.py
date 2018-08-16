@@ -41,7 +41,7 @@ def decode_token(token):
     parts = token.split('.')
 
     if token and len(parts) == 3:
-        return base64_urldecode(parts[0]), base64_urldecode(parts[1])
+        return base64_urldecode(parts[0]).decode(), base64_urldecode(parts[1]).decode()
 
     # It's not a JWT
     return None
