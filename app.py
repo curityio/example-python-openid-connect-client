@@ -148,17 +148,16 @@ def call_api():
             user.api_response = None
             if user.access_token:
                 try:
-                    request = urllib.request.Request(_config['api_endpoint'])
-                    request.add_header('User-Agent', 'CurityExample/1.0')
-                    request.add_header("Authorization", "Bearer %s" % user.access_token)
-                    request.add_header("Accept", 'application/json')
-                    response = urllib.request.urlopen(request)
-                    user.api_response = {'code': response.code, 'data': response.read()}
+                    req = urllib.request.Request(_config['api_endpoint'])
+                    req.add_header('User-Agent', 'CurityExample/1.0')
+                    req.add_header('Authorization', 'Bearer %s' % user.access_token)
+                    req.add_header('Accept', 'application/json')
+                    response = urllib.request.urlopen(req)
+                    user.api_response = {'code': response.code, 'data': response.read().decode()}
                 except urllib.error.HTTPError as e:
                     user.api_response = {'code': e.code, 'data': e.read()}
                 except Exception as e:
-                    message = e.message if len(e.message) > 0 else "unknown error"
-                    user.api_response = {"code": "unknown error", "data": message}
+                    user.api_response = {'code': 'unknown error', 'data': e}
             else:
                 user.api_response = None
                 print('No access token in session')
