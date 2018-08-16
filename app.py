@@ -155,9 +155,9 @@ def call_api():
                     response = urllib.request.urlopen(req)
                     user.api_response = {'code': response.code, 'data': response.read().decode()}
                 except urllib.error.HTTPError as e:
-                    user.api_response = {'code': e.code, 'data': e.read()}
+                    user.api_response = {'code': e.code, 'data': e.read().decode()}
                 except Exception as e:
-                    user.api_response = {'code': 'unknown error', 'data': e}
+                    user.api_response = {'code': 'unknown error', 'data': str(e)}
             else:
                 user.api_response = None
                 print('No access token in session')
