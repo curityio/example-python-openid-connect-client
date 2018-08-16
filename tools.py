@@ -26,8 +26,9 @@ def base64_urldecode(s):
     return base64.urlsafe_b64decode(ascii_string)
 
 
-def base64_urlencode(s):
-    return base64.urlsafe_b64encode(s).split("=")[0]
+def base64_urlencode(b):
+    encoded_bytes = base64.urlsafe_b64encode(b)
+    return encoded_bytes.decode().split("=")[0]
 
 
 def decode_token(token):

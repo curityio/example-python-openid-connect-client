@@ -91,9 +91,9 @@ class Client:
         """
         state = tools.generate_random_string()
         session['state'] = state
-        session['code_verifier'] = code_verifier = tools.generate_random_string(100)
+        session['code_verifier'] = code_verifier = tools.generate_random_string(100).encode()
 
-        code_challenge = tools.base64_urlencode(hashlib.sha256(code_verifier.encode()).digest())
+        code_challenge = self.__create_code_challenge(code_verifier)
 
         request_args = self.__authn_req_args(state, scope, code_challenge, "S256")
         if acr: request_args["acr_values"] = acr
@@ -102,6 +102,10 @@ class Client:
         login_url = "%s%s%s" % (self.config['authorization_endpoint'], delimiter, urllib.parse.urlencode(request_args))
         print("Redirect to federation service %s" % login_url)
         return login_url
+
+    def __create_code_challenge(self, code_verifier):
+        digest = hashlib.sha256(code_verifier).digest()
+        return tools.base64_urlencode(digest)
 
     def get_token(self, code, code_verifier):
         """
@@ -116,7 +120,8 @@ class Client:
 
         # Exchange code for tokens
         try:
-            token_response = self.urlopen(self.config['token_endpoint'], urllib.parse.urlencode(data), context=self.ctx)
+            token_response = self.urlopen(self.config['token_endpoint'], urllib.parse.urlencode(data).encode(),
+                                          context=self.ctx)
         except urllib.error.URLError as te:
             print("Could not exchange code for tokens")
             raise te
