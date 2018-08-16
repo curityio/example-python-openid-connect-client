@@ -12,7 +12,7 @@ Browse to https://localhost:5443 to see the app.
 
 ## Dependencies
 
-**python 2.x** (tested with python 2.7.10)
+**python 3.x** (tested with python 3.7.0)
 
 **OpenSSL 1.0** to be able to do modern TLS versions. Python together with 0.9.x has a bug that makes it impossible to select protocol in the handshake, so it cannot connect to servers that have disabled SSLv2.
 
