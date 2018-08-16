@@ -67,7 +67,7 @@ class Client:
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-        self.urlopen(self.config['revocation_endpoint'], urllib.parse.urlencode(data), context=self.ctx)
+        self.urlopen(self.config['revocation_endpoint'], urllib.parse.urlencode(data).encode(), context=self.ctx)
 
     def refresh(self, refresh_token):
         """
@@ -81,7 +81,7 @@ class Client:
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-        token_response = self.urlopen(self.config['token_endpoint'], urllib.parse.urlencode(data), context=self.ctx)
+        token_response = self.urlopen(self.config['token_endpoint'], urllib.parse.urlencode(data).encode(), context=self.ctx)
         return json.loads(token_response.read())
 
     def get_authn_req_url(self, session, acr, forceAuthN, scope):
