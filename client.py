@@ -21,7 +21,7 @@ import urllib2
 
 import tools
 
-REGISTEREDclient_FILENAME = 'registered_client.json'
+REGISTERED_CLIENT_FILENAME = 'registered_client.json'
 
 class Client:
     def __init__(self, config):
@@ -59,12 +59,12 @@ class Client:
             self.config['scope'] = 'openid'
 
     def read_credentials_from_file(self):
-        if not os.path.isfile(REGISTEREDclient_FILENAME):
+        if not os.path.isfile(REGISTERED_CLIENT_FILENAME):
             print 'Client is not registered'
             return
 
         try:
-            registered_client = json.loads(open(REGISTEREDclient_FILENAME).read())
+            registered_client = json.loads(open(REGISTERED_CLIENT_FILENAME).read())
         except Exception as e:
             print 'Could not read credentials from file', e
             return
@@ -94,7 +94,7 @@ class Client:
         register_response = urllib2.urlopen(register_request, json.dumps(data), context=self.ctx)
         self.client_data = json.loads(register_response.read())
 
-        with open(REGISTEREDclient_FILENAME, 'w') as outfile:
+        with open(REGISTERED_CLIENT_FILENAME, 'w') as outfile:
             outfile.write(json.dumps(self.client_data))
 
         if self.config['debug']:
