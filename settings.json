@@ -1,16 +1,8 @@
 {
-  "client_id": "client-1",
-  "client_secret": "Password1",
   "audience": "client-one",
   "redirect_uri": "https://localhost:5443/callback",
   "scope": "openid read",
-  "authorization_endpoint": "https://nordicapis.curity.io/oauth/v2/authorize",
-  "token_endpoint": "https://nordicapis.curity.io/oauth/v2/token",
   "logout_endpoint": "https://nordicapis.curity.io/authn/authenticate/logout",
-  "revocation_endpoint": "https://nordicapis.curity.io/oauth/v2/revoke",
-  "jwks_uri": "https://nordicapis.curity.io/~/jwks",
   "issuer": "https://nordicapis.curity.io/~",
-  "api_endpoint": "https://nordicapis-api.curity.io/hello_world",
-  "base_url": "https://localhost:5443",
-  "verify_ssl_server": true
+  "api_endpoint": "https://nordicapis-api.curity.io/hello_world"
 }

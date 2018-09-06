@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
-import hashlib
 
 import json
+import os
 import urllib
 import urllib2
 
 import tools
 
+REGISTEREDclient_FILENAME = 'registered_client.json'
 
 class Client:
     def __init__(self, config):
@@ -29,30 +30,77 @@ class Client:
         print 'Getting ssl context for oauth server'
         self.ctx = tools.get_ssl_context(self.config)
         self.__init_config()
-
+        self.client_data = None
 
     def __init_config(self):
-        if 'discovery_url' in self.config:
-            discovery = self.urlopen(self.config['discovery_url'], context=self.ctx)
-            self.config.update(json.loads(discovery.read()))
-        else:
-            print "No discovery url configured, all endpoints needs to be configured manually"
 
+        if 'issuer' in self.config:
+            meta_data_url = self.config['issuer'] + '/.well-known/openid-configuration'
+            print 'Fetching config from: %s' % meta_data_url
+            meta_data = urllib2.urlopen(meta_data_url)
+            if meta_data:
+                self.config.update(json.load(meta_data))
+            else:
+                print 'Unexpected response on discovery document: %s' % meta_data
+        else:
+            print 'Found no issuer in config, can not perform discovery. All endpoint config needs to be set manually'
 
         # Mandatory settings
         if 'authorization_endpoint' not in self.config:
             raise Exception('authorization_endpoint not set.')
         if 'token_endpoint' not in self.config:
             raise Exception('token_endpoint not set.')
+
+        self.read_credentials_from_file()
         if 'client_id' not in self.config:
-            raise Exception('client_id not set.')
-        if 'client_secret' not in self.config:
-            raise Exception('client_secret not set.')
-        if 'redirect_uri' not in self.config:
-            raise Exception('redirect_uri not set.')
+            print 'Client is not registered.'
 
         if 'scope' not in self.config:
             self.config['scope'] = 'openid'
+
+    def read_credentials_from_file(self):
+        if not os.path.isfile(REGISTEREDclient_FILENAME):
+            print 'Client is not registered'
+            return
+
+        try:
+            registered_client = json.loads(open(REGISTEREDclient_FILENAME).read())
+        except Exception as e:
+            print 'Could not read credentials from file', e
+            return
+        self.config['client_id'] = registered_client['client_id']
+        self.config['client_secret'] = registered_client['client_secret']
+        self.config['redirect_uri'] = registered_client['redirect_uris'][0]
+        self.client_data = registered_client
+
+    def register(self):
+        """
+        Revoke the token
+        :raises: raises error when http call fails
+        """
+        if 'registration_endpoint' not in self.config:
+            print 'Authorization server does not support Dynamic Client Registration. Please configure client credentials manually '
+            return
+
+        if 'client_id' in self.config:
+            raise Exception('Client is already registered')
+
+        print 'Registering client at %s with redirect_uri %s' % (self.config['base_url'], self.config['redirect_uri'])
+
+        register_request = urllib2.Request(self.config['registration_endpoint'])
+        data = {
+            'redirect_uris': [self.config['redirect_uri']]
+        }
+        register_response = urllib2.urlopen(register_request, json.dumps(data), context=self.ctx)
+        self.client_data = json.loads(register_response.read())
+
+        with open(REGISTEREDclient_FILENAME, 'w') as outfile:
+            outfile.write(json.dumps(self.client_data))
+
+        if self.config['debug']:
+            tools.print_json(self.client_data)
+
+        self.read_credentials_from_file()
 
     def revoke(self, token):
         """
@@ -89,6 +137,8 @@ class Client:
     def get_authn_req_url(self, session, acr, forceAuthN, scope, forceConsent, allowConsentOptionDeselection):
         """
         :param session: the session, will be used to keep the OAuth state
+        :param acr: The acr to request
+        :param force_authn: Force the resource owner to authenticate even though a session exist
         :return redirect url for the OAuth code flow
         """
         state = tools.generate_random_string()
@@ -153,6 +203,9 @@ class Client:
         :param state: state to send to authorization server
         :return a map of arguments to be sent to the authz endpoint
         """
+        if 'client_id' not in self.config:
+            raise Exception('Client is not registered')
+
         args = {'scope': scope,
                 'response_type': 'code',
                 'client_id': self.config['client_id'],
@@ -164,3 +217,13 @@ class Client:
         if 'authn_parameters' in self.config:
             args.update(self.config['authn_parameters'])
         return args
+
+
+    def get_client_data(self):
+        if not self.client_data:
+            self.read_credentials_from_file()
+
+        if self.client_data:
+            masked = self.client_data
+            masked['client_secret'] = '***********************************'
+            return json.dumps(masked)

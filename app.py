@@ -58,12 +58,18 @@ def index():
         if user.access_token:
             user.access_token_json = decode_token(user.access_token)
 
+    if 'base_url' not in _config or not _config['base_url']:
+        _config['base_url'] = request.base_url
+
     if is_logged_in:
         return render_template('index.html',
-                            server_name=urlparse(_config['authorization_endpoint']).netloc,
-                            session=user)
+                                server_name=_config['issuer'],
+                                session=user)
     else:
-        return render_template('welcome.html')
+        is_registered = 'client_id' in _config
+        client_id = _config['client_id'] if is_registered else ''
+        return render_template('welcome.html', registered=is_registered, client_id=client_id,
+                               client_data=_client.get_client_data())
 
 
 @_app.route('/start-login')
@@ -93,7 +99,7 @@ def logout():
     session.clear()
     if 'logout_endpoint' in _config:
         print "Logging out against", _config['logout_endpoint']
-        return redirect(_config['logout_endpoint'] + '?redirect_uri=' + _base_url)
+        return redirect(_config['logout_endpoint'] + '?redirect_uri=' + _config['base_url'])
     return redirect_with_baseurl('/')
 
 
@@ -135,12 +141,28 @@ def revoke():
     return redirect_with_baseurl('/')
 
 
+@_app.route('/register')
+def register():
+    """
+    Register the client to get unique client credentials
+    :return: redirects to /
+    """
+
+    try:
+        _client.register()
+    except Exception as e:
+        return create_error('Could not register client dynamically: %s' % e, e)
+
+    return redirect_with_baseurl('/')
+
+
 @_app.route('/call-api')
 def call_api():
     """
     Call an api using the Access Token
     :return: the index template with the data from the api in the parameter 'data'
     """
+
     if 'session_id' in session:
         user = _session_store.get(session['session_id'])
         if not user:
@@ -224,6 +246,7 @@ def oauth_callback():
 def create_error(message, exception = None):
     """
     Print the error and output it to the page
+    :param exception:
     :param message:
     :return: redirects to index.html with the error message
     """
@@ -234,7 +257,7 @@ def create_error(message, exception = None):
         if 'session_id' in session:
             user = _session_store.get(session['session_id'])
         return render_template('index.html',
-                               server_name=urlparse(_config['authorization_endpoint']).netloc,
+                               server_name=_config['issuer'],
                                session=user,
                                error=message)
 
@@ -255,7 +278,7 @@ def load_config():
 
 
 def redirect_with_baseurl(path):
-    return redirect(_base_url + path)
+    return redirect(_config['base_url'] + path)
 
 
 if __name__ == '__main__':
@@ -278,18 +301,24 @@ if __name__ == '__main__':
     _app.secret_key = generate_random_string()
 
     # some default values
-    _debug = 'debug' in _config and _config['debug']
     if 'port' in _config:
-        _port = _config['port']
+        port = _config['port']
     else:
-        _port = 5443
+        port = 5443
+
     _disable_https = 'disable_https' in _config and _config['disable_https']
-    if 'base_url' in _config:
-        _base_url = _config['base_url']
-    else:
-        _base_url = ''
+
+    if 'base_url' not in _config:
+        _config['base_url'] = ''
+
+    debug = 'debug' in _config and _config['debug']
+    _config['debug'] = debug
+
+    if debug:
+        print 'Running conf:'
+        print_json(_config)
 
     if _disable_https:
-        _app.run('0.0.0.0', debug=_debug, port=_port)
+        _app.run('0.0.0.0', debug=debug, port=port)
     else:
-        _app.run('0.0.0.0', debug=_debug, port=_port, ssl_context=('keys/localhost.pem', 'keys/localhost.pem'))
+        _app.run('0.0.0.0', debug=debug, port=port, ssl_context=('keys/localhost.pem', 'keys/localhost.pem'))
