@@ -77,7 +77,8 @@ def start_code_flow():
 
     login_url = _client.get_authn_req_url(session, request.args.get("acr", None),
                                           request.args.get("forceAuthN", False),
-                                          scopes)
+                                          scopes, request.args.get("forceConsent", False),
+                                          request.args.get("allowConsentOptionDeselection", False))
     return redirect(login_url)
 
 
