@@ -1,7 +1,7 @@
 {
   "client_id": "client-1",
   "client_secret": "Password1",
-  "audience": "client-one",
+  "audience": "client-1",
   "redirect_uri": "https://localhost:5443/callback",
   "scope": "openid read",
   "authorization_endpoint": "https://nordicapis.curity.io/oauth/v2/authorize",
