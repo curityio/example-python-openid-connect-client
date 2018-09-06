@@ -20,7 +20,7 @@
     <title>OpenID Connect Demo</title>
     <link rel="stylesheet" href="static/bootstrap.min.css">
     <link rel="stylesheet" href="static/bootstrap-theme.min.css">
-    <script src="static/jquery-3.1.1.slim.min.js"></script>
+    <script src="static/jquery-3.1.1.min.js"></script>
 
     <style type="text/css">
         .navbar img {
@@ -40,6 +40,15 @@
         .mb {
             margin-bottom: 12px;
         }
+
+        LABEL {
+            font-weight: normal;
+        }
+
+        #response_type_label {
+            padding-left: 0;
+            padding-bottom: 0.5em;
+        }
     </style>
 
     <script type="application/javascript">
@@ -52,6 +61,25 @@
                 return;
             }
             return JSON.stringify(token, null, 2);
+        }
+
+        function handleNonCodeFlowResponse() {
+            console.log("OK");
+            var params = {};
+            window.location.hash.substring(1).split('&').map(function (it) {
+                var parts = it.split('=');
+                params[parts[0]] = parts[1]
+            });
+            console.log(params);
+            $.post("callback-js", params, function (data) {
+                console.log(data);
+                console.log(params["id_token"]);
+                document.location = "/";
+            });
+        }
+
+        if (window.location.hash) {
+            handleNonCodeFlowResponse();
         }
 
         $('document').ready(function () {
@@ -137,8 +165,21 @@
                         </div>
                     {% endif %}
 
+                    {% if session.front_end_id_token %}
+                        <li class="list-group-item">Front-end ID Token
+                            <a href="/revoke?id_token&front_end" class="btn btn-xs btn-danger pull-right">revoke</a>
+                        </li>
+                        <div>
+                            <pre class="json hidden">{{ session.front_end_id_token_json[0] | e }}</pre>
+                            <pre class="json hidden" id="id-token-payload">{{ session.front_end_id_token_json[1] | e }}</pre>
+                            <pre>{{ session.front_end_id_token }}</pre>
+                        </div>
+                    {% endif %}
+
                     {% if session.id_token %}
-                        <li class="list-group-item">ID Token</li>
+                        <li class="list-group-item">Back-end ID Token
+                            <a href="/revoke?id_token&back_end" class="btn btn-xs btn-danger pull-right">revoke</a>
+                        </li>
                         <div>
                             <pre class="json hidden">{{ session.id_token_json[0] | e }}</pre>
                             <pre class="json hidden" id="id-token-payload">{{ session.id_token_json[1] | e }}</pre>
@@ -146,8 +187,25 @@
                         </div>
                     {% endif %}
 
+                    {%  if session.front_end_access_token %}
+                        <li class="list-group-item">Front-end Access Token
+                            <a href="/revoke?front_end_access_token" class="btn btn-xs btn-danger pull-right">revoke</a>
+                        </li>
+                        <div>
+                            {% if session.front_end_access_token_json %}
+                                <pre class="json hidden">{{ session.front_end_access_token_json[0] | e }}</pre>
+                                <pre class="json hidden">{{ session.front_end_access_token_json[1] | e }}</pre>
+                                <pre>{{ session.front_end_access_token }}</pre>
+                            {% else %}
+                                <pre>{{ session.front_end_access_token | e }}</pre>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
                     {% if session.access_token %}
-                        <li class="list-group-item">Access Token
+                        <li class="list-group-item">Back-end Access Token
+                            <a href="/revoke?back_end_access_token" class="btn btn-xs btn-danger pull-right" style="margin-left: 4px">revoke</a>
+
                             {% if session.refresh_token %}
                                 <a href="/refresh" class="btn btn-xs btn-info pull-right" id="refresh">refresh</a>
                             {% endif %}
@@ -165,8 +223,8 @@
 
                     {% if session.refresh_token %}
                         <div>
-                            <li class="list-group-item">Refresh Token
-                                <a href="/revoke" class="btn btn-xs btn-danger pull-right">revoke</a>
+                            <li class="list-group-item">Back-end Refresh Token
+                                <a href="/revoke?refresh_token" class="btn btn-xs btn-danger pull-right">revoke</a>
                             </li>
                             <pre>{{ session.refresh_token | e }}</pre>
                         </div>
@@ -179,16 +237,43 @@
         <div class="col-md-3"></div>
         <div class="col-md-6">
             {% if session %}
-              {% if not error %}
-                <div class="btn-group btn-group-justified mb" role="group">
-                    <a href="/call-api" class="btn btn-default" type="button">Request data from api</a>
-                </div>
+              {% if not error and (session.access_token or session.front_end_access_token) %}
+                  <div class="panel panel-default">
+                    <div class="panel-heading">Request data from an API</div>
+                    <div class="panel-body">
+                        <div class="btn-group btn-group-justified mb" role="group">
+                            {% if session.front_end_access_token and session.access_token %}
+                                <a href="/call-api?front-end" class="btn btn-default" type="button" style="right: 4px; border-radius: 4px">Using Front-end Access Token</a>
+                                <a href="/call-api" class="btn btn-default" type="button" style="left: 4px; border-radius: 4px">Using Back-end Access Token</a>
+                            {% elif session.access_token %}
+                                <a href="/call-api" class="btn btn-default" type="button">Using Back-end Access Token</a>
+                            {% else %}
+                                <a href="/call-api?front-end" class="btn btn-default" type="button">Using Front-end Access Token</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                  </div>
               {%  endif %}
                 <form action="/start-login" method="get">
                     <div class="form-group">
                         <input type="text" class="form-control" name="acr" id="acr" placeholder="Authentication class context reference (ACR)">
                     </div>
-                    <div class="checkbox">
+                    <div class="radio-inline" id="response_type_label">
+                        Response Type
+                    </div>
+                    <div class="radio-inline">
+                        <label><input type="radio" name="responseType" value="code" {{ "checked" if flow == "code" }}>code</label>
+                    </div>
+                    <div class="radio-inline">
+                        <label><input type="radio" name="responseType" value="code id_token" {{  "checked" if flow == "code id_token" }}>code + id_token</label>
+                    </div>
+                    <div class="radio-inline">
+                        <label><input type="radio" name="responseType" value="code token" {{ "checked" if flow == "code token" }}>code + token</label>
+                    </div>
+                    <div class="radio-inline">
+                        <label><input type="radio" name="responseType" value="code id_token token" {{ "checked" if flow == "code id_token token" }}>code + token + id_token</label>
+                    </div>
+                    <div class="checkbox" style="margin-top: 0">
                         <label><input type="checkbox" name="forceAuthN">Force authentication</label>
                     </div>
                     <div class="checkbox">

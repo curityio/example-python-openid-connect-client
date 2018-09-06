@@ -14,10 +14,9 @@
 # limitations under the License.
 ##########################################################################
 
-import json
 import sys
 import urllib2
-from flask import redirect, request, render_template, session, Flask
+from flask import redirect, request, render_template, session, abort, Flask
 from jwkest import BadSignature
 from urlparse import urlparse
 
@@ -40,6 +39,9 @@ class UserSession:
     id_token_json = None
     name = None
     api_response = None
+    front_end_id_token = None
+    front_end_id_token_json = None
+    front_end_access_token = None
 
 
 @_app.route('/')
@@ -51,19 +53,25 @@ def index():
     is_logged_in = False
     if 'session_id' in session:
         user = _session_store.get(session['session_id'])
+
     if user:
-        is_logged_in = True
+        if user.front_end_id_token:
+            user.front_end_id_token_json = decode_token(user.front_end_id_token)
+
+        if user.front_end_access_token:
+            user.front_end_access_token_json = decode_token(user.front_end_access_token)
+
         if user.id_token:
             user.id_token_json = decode_token(user.id_token)
+
         if user.access_token:
             user.access_token_json = decode_token(user.access_token)
 
-    if is_logged_in:
         return render_template('index.html',
                             server_name=urlparse(_config['authorization_endpoint']).netloc,
-                            session=user)
-    else:
-        return render_template('welcome.html')
+                            session=user, flow=session.get("flow", "code"))
+
+    return render_template('welcome.html')
 
 
 @_app.route('/start-login')
@@ -78,7 +86,8 @@ def start_code_flow():
     login_url = _client.get_authn_req_url(session, request.args.get("acr", None),
                                           request.args.get("forceAuthN", False),
                                           scopes, request.args.get("forceConsent", False),
-                                          request.args.get("allowConsentOptionDeselection", False))
+                                          request.args.get("allowConsentOptionDeselection", False),
+                                          request.args.get("responseType", "code"))
     return redirect(login_url)
 
 
@@ -125,12 +134,41 @@ def revoke():
         if not user:
             redirect_with_baseurl('/')
 
-        if user.refresh_token:
-            try:
-                _client.revoke(user.refresh_token)
-            except urllib2.URLError as e:
-                return create_error('Could not revoke refresh token', e)
+        token = None
+        token_type_hint = "access_token"
+        error_message = "Could not revoke access token"
+
+        if user.refresh_token and "refresh_token" in request.args:
+            error_message = 'Could not revoke refresh token'
+            token_type_hint = "refresh_token"
+            token = user.refresh_token
             user.refresh_token = None
+            user.access_token = None
+        elif user.access_token and "back_end_access_token" in request.args:
+            token = user.access_token
+            user.access_token = None
+        elif user.front_end_access_token and "front_end_access_token" in request.args:
+            token = user.front_end_access_token
+            user.front_end_access_token = None
+        elif "id_token" in request.args:
+            token_type_hint = "id"
+            error_message = "Could not revoke ID token"
+
+            if "back_end" in request.args and user.id_token:
+                token = user.id_token
+                user.id_token = None
+            elif "front_end" in request.args and user.front_end_id_token:
+                token = user.front_end_id_token
+                user.front_end_id_token = None
+            else:
+                abort(400)
+        else:
+            abort(400)
+
+        try:
+            _client.revoke(token, token_type_hint)
+        except urllib2.URLError as e:
+            return create_error(error_message, e)
 
     return redirect_with_baseurl('/')
 
@@ -147,27 +185,50 @@ def call_api():
             return redirect_with_baseurl('/')
         if 'api_endpoint' in _config:
             user.api_response = None
-            if user.access_token:
-                try:
-                    request = urllib2.Request(_config['api_endpoint'])
-                    request.add_header('User-Agent', 'CurityExample/1.0')
-                    request.add_header("Authorization", "Bearer %s" % user.access_token)
-                    request.add_header("Accept", 'application/json')
-                    response = urllib2.urlopen(request)
-                    user.api_response = {'code': response.code, 'data': response.read()}
-                except urllib2.HTTPError as e:
-                    user.api_response = {'code': e.code, 'data': e.read()}
-                except Exception as e:
-                    message = e.message if len(e.message) > 0 else "unknown error"
-                    user.api_response = {"code": "unknown error", "data": message}
+            if "front-end" in request.args and user.front_end_access_token:
+                access_token = user.front_end_access_token
+            elif user.access_token:
+                access_token = user.access_token
             else:
                 user.api_response = None
                 print 'No access token in session'
+
+                return redirect_with_baseurl("/")
+
+            try:
+                req = urllib2.Request(_config['api_endpoint'])
+                req.add_header('User-Agent', 'CurityExample/1.0')
+                req.add_header("Authorization", "Bearer %s" % access_token)
+                req.add_header("Accept", 'application/json')
+                response = urllib2.urlopen(req)
+                user.api_response = {'code': response.code, 'data': response.read()}
+            except urllib2.HTTPError as e:
+                user.api_response = {'code': e.code, 'data': e.read()}
+            except Exception as e:
+                message = e.message if len(e.message) > 0 else "unknown error"
+                user.api_response = {"code": "unknown error", "data": message}
         else:
             user.api_response = None
             print 'No API endpoint configured'
 
     return redirect_with_baseurl('/')
+
+
+@_app.route("/callback-js", methods=['POST'])
+def ajax_callback():
+    user = callback(request.form)
+
+    user.front_end_id_token = request.form.get("id_token", "")
+    user.front_end_access_token = request.form.get("access_token", "")
+
+    if "session_id" in session:
+        _session_store[session['session_id']] = user
+    else:
+        # New session. Unexpected since code flow would normally be done first. Make a new session instead
+        session['session_id'] = generate_random_string()
+        _session_store[session['session_id']] = user
+
+    return "ok"
 
 
 @_app.route('/callback')
@@ -176,20 +237,34 @@ def oauth_callback():
     Called when the resource owner is returning from the authorization server
     :return:redirect to / with user info stored in the session.
     """
-    if 'state' not in session or session['state'] != request.args['state']:
-        return create_error('Missing or invalid state')
+    if session.get("flow", None) != "code":
+        # This is the callback for a hybrid or implicit flow
+        return render_template('index.html')
 
-    if 'code' not in request.args:
-        return create_error('No code in response')
+    user = callback(request.args)
+
+    session['session_id'] = generate_random_string()
+    _session_store[session['session_id']] = user
+
+    return redirect_with_baseurl('/')
+
+
+def callback(params):
+    if 'state' not in session or session['state'] != params['state']:
+        return create_error('Missing or invalid state')
 
     if "code_verifier" not in session:
         return create_error("No code_verifier in session")
 
+    if 'code' not in params:
+        return create_error('No code in response')
+
+    session.pop('state', None)
+
     try:
-        token_data = _client.get_token(request.args['code'], session["code_verifier"])
+        token_data = _client.get_token(params['code'], session["code_verifier"])
     except Exception as e:
         return create_error('Could not fetch token(s)', e)
-    session.pop('state', None)
 
     # Store in basic server session, since flask session use cookie for storage
     user = UserSession()
@@ -215,11 +290,7 @@ def oauth_callback():
     if 'refresh_token' in token_data:
         user.refresh_token = token_data['refresh_token']
 
-    session['session_id'] = generate_random_string()
-    _session_store[session['session_id']] = user
-
-    return redirect_with_baseurl('/')
-
+    return user
 
 def create_error(message, exception = None):
     """
