@@ -75,7 +75,7 @@ class Client:
 
     def register(self):
         """
-        Revoke the token
+        Register a client at the AS
         :raises: raises error when http call fails
         """
         if 'registration_endpoint' not in self.config:
