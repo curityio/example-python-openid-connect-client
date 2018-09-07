@@ -87,6 +87,9 @@ class Client:
         if 'client_id' in self.config:
             raise Exception('Client is already registered')
 
+        if 'registration_client_id' in self.config:
+            print 'Using implicit flow to get a initial registration token'
+
         print 'Registering client at %s with redirect_uri %s' % (self.config['base_url'], self.config['redirect_uri'])
 
         register_request = urllib2.Request(self.config['registration_endpoint'])
@@ -130,7 +133,7 @@ class Client:
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-        self.urlopen(self.config['revocation_endpoint'], urllib.urlencode(data), context=self.ctx)
+        self.__urlopen(self.config['revocation_endpoint'], urllib.urlencode(data), context=self.ctx)
 
     def refresh(self, refresh_token):
         """
@@ -144,7 +147,7 @@ class Client:
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-        token_response = self.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
+        token_response = self.__urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
         return json.loads(token_response.read())
 
     def get_authn_req_url(self, session, acr, forceAuthN, scope, forceConsent, allowConsentOptionDeselection):
@@ -188,27 +191,52 @@ class Client:
 
         # Exchange code for tokens
         try:
-            token_response = self.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
+            token_response = self.__urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
         except urllib2.URLError as te:
             print "Could not exchange code for tokens"
             raise te
         return json.loads(token_response.read())
 
-    def urlopen(self, url, data=None, context=None):
+    def get_client_data(self):
+        if not self.client_data:
+            self.read_credentials_from_file()
+
+        if self.client_data:
+            masked = self.client_data
+            masked['client_secret'] = '***********************************'
+            return masked
+
+    def __urlopen(self, url, data=None, context=None):
         """
         Open a connection to the specified url. Sets valid requests headers.
         :param url: url to open - cannot be a request object 
-        :data: data to send, optional
-        :context: ssl context
+        :param data: data to send, optional
+        :param context: ssl context
         :return the request response
         """
         headers = {
             'User-Agent': 'CurityExample/1.0',
-            'Accept': 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
+            'Accept': 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,'
+                      '*/*;q=0.8 '
         }
 
         request = urllib2.Request(url, data, headers)
         return urllib2.urlopen(request, context=context)
+
+    def __registration_authn_req_url(self):
+        """
+        :return a map of arguments to be sent to the authz endpoint
+        """
+
+        args = {'scope': 'dcr',
+                'response_type': 'token',
+                'client_id': self.config['registration_client_id'],
+                'prompt': 'login',
+                'redirect_uri': self.config['base_url'] + '/reg-callback'}
+        delimiter = '?' if self.config['authorization_endpoint'].find('?') < 0 else '&'
+        login_url = '%s%s%s' % (self.config['authorization_endpoint'], delimiter, urllib.urlencode(args))
+        print 'Redirect to authorization server for getting registartion token %s' % login_url
+        return login_url
 
     def __authn_req_args(self, state, scope, code_challenge, code_challenge_method="plain"):
         """
@@ -229,12 +257,3 @@ class Client:
         if 'authn_parameters' in self.config:
             args.update(self.config['authn_parameters'])
         return args
-
-    def get_client_data(self):
-        if not self.client_data:
-            self.read_credentials_from_file()
-
-        if self.client_data:
-            masked = self.client_data
-            masked['client_secret'] = '***********************************'
-            return masked
