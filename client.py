@@ -131,6 +131,7 @@ class Client:
         """
         Revoke the token
         :param token: the token to revoke
+        :param token_type_hint: a hint to the OAuth server about the kind of token being revoked
         :raises: raises error when http call fails
         """
         if 'revocation_endpoint' not in self.config:
@@ -139,9 +140,11 @@ class Client:
 
         data = {
             'token': token,
+            "token_type_hint": token_type_hint,
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
+
         self.__urlopen(self.config['revocation_endpoint'], urllib.urlencode(data), context=self.ctx)
 
     def refresh(self, refresh_token):
@@ -159,7 +162,8 @@ class Client:
         token_response = self.__urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
         return json.loads(token_response.read())
 
-    def get_authn_req_url(self, session, acr, forceAuthN, scope, forceConsent, allowConsentOptionDeselection):
+    def get_authn_req_url(self, session, acr, forceAuthN, scope, forceConsent, allowConsentOptionDeselection,
+                          response_type):
         """
         :param session: the session, will be used to keep the OAuth state
         :param acr: The acr to request
@@ -169,11 +173,23 @@ class Client:
         state = tools.generate_random_string()
         session['state'] = state
         session['code_verifier'] = code_verifier = tools.generate_random_string(100)
+        session["flow"] = response_type
 
         code_challenge = tools.base64_urlencode(hashlib.sha256(code_verifier).digest())
 
-        request_args = self.__authn_req_args(state, scope, code_challenge, "S256")
+        request_args = {'scope': scope,
+                        'response_type': response_type,
+                        'client_id': self.config['client_id'],
+                        'state': state,
+                        'code_challenge': code_challenge,
+                        'code_challenge_method': "S256",
+                        'redirect_uri': self.config['redirect_uri']}
+
+        if 'authn_parameters' in self.config:
+            request_args.update(self.config['authn_parameters'])
+
         if acr: request_args["acr_values"] = acr
+
         if forceAuthN: request_args["prompt"] = "login"
 
         if forceConsent:
@@ -182,9 +198,14 @@ class Client:
             else:
                 request_args["prompt"] = request_args.get("prompt", "") + " consent"
 
+        if response_type.find("id_token"):
+            request_args["nonce"] = session["nonce"] = tools.generate_random_string()
+
         delimiter = "?" if self.config['authorization_endpoint'].find("?") < 0 else "&"
         login_url = "%s%s%s" % (self.config['authorization_endpoint'], delimiter, urllib.urlencode(request_args))
-        print "Redirect to federation service %s" % login_url
+
+        print "Redirect to %s" % login_url
+
         return login_url
 
     def get_token(self, code, code_verifier):
