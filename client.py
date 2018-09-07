@@ -87,16 +87,17 @@ class Client:
         if 'client_id' in self.config:
             raise Exception('Client is already registered')
 
-        if 'registration_client_id' in self.config:
-            print 'Using implicit flow to get a initial registration token'
+        if 'dcr_access_token' not in self.config:
+            self.get_registration_token()
 
         print 'Registering client at %s with redirect_uri %s' % (self.config['base_url'], self.config['redirect_uri'])
 
-        register_request = urllib2.Request(self.config['registration_endpoint'])
         data = {
             'redirect_uris': [self.config['redirect_uri']]
         }
-        register_response = urllib2.urlopen(register_request, json.dumps(data), context=self.ctx)
+
+        register_response = self.__urlopen(self.config['registration_endpoint'], data=json.dumps(data),
+                                           token=self.config['dcr_access_token'])
         self.client_data = json.loads(register_response.read())
 
         with open(REGISTERED_CLIENT_FILENAME, 'w') as outfile:
@@ -206,12 +207,37 @@ class Client:
             masked['client_secret'] = '***********************************'
             return masked
 
-    def __urlopen(self, url, data=None, context=None):
+    def get_registration_token(self):
+
+        if 'dcr_client_id' not in self.config:
+            raise Exception('Can not run client registration. Missing client id.')
+
+        if 'dcr_client_secret' not in self.config:
+            raise Exception('Can not run client registration. Missing client secret.')
+
+        data = {
+            'client_id': self.config['dcr_client_id'],
+            'client_secret': self.config['dcr_client_secret'],
+            'grant_type': 'client_credentials',
+            'scope': 'dcr'
+        }
+
+        try:
+            token_response = self.__urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
+        except urllib2.URLError as te:
+            print "Could not get DCR access token"
+            raise te
+
+        json_response = json.loads(token_response.read())
+        self.config['dcr_access_token'] = json_response['access_token']
+
+    def __urlopen(self, url, data=None, context=None, token=None):
         """
         Open a connection to the specified url. Sets valid requests headers.
         :param url: url to open - cannot be a request object 
         :param data: data to send, optional
         :param context: ssl context
+        :param token: token to add to the authorization header
         :return the request response
         """
         headers = {
@@ -219,24 +245,11 @@ class Client:
             'Accept': 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,'
                       '*/*;q=0.8 '
         }
+        if token:
+            headers['Authorization'] = 'Bearer %s' % token
 
         request = urllib2.Request(url, data, headers)
         return urllib2.urlopen(request, context=context)
-
-    def __registration_authn_req_url(self):
-        """
-        :return a map of arguments to be sent to the authz endpoint
-        """
-
-        args = {'scope': 'dcr',
-                'response_type': 'token',
-                'client_id': self.config['registration_client_id'],
-                'prompt': 'login',
-                'redirect_uri': self.config['base_url'] + '/reg-callback'}
-        delimiter = '?' if self.config['authorization_endpoint'].find('?') < 0 else '&'
-        login_url = '%s%s%s' % (self.config['authorization_endpoint'], delimiter, urllib.urlencode(args))
-        print 'Redirect to authorization server for getting registartion token %s' % login_url
-        return login_url
 
     def __authn_req_args(self, state, scope, code_challenge, code_challenge_method="plain"):
         """

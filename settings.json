@@ -3,6 +3,8 @@
   "scope": "openid read",
   "logout_endpoint": "https://nordicapis.curity.io/authn/authenticate/logout",
   "issuer": "https://nordicapis.curity.io/~",
+  "dcr_client_id": "oidc-demo-registration",
+  "dcr_client_secret": "Password1",
   "debug": true,
   "api_endpoint": "https://nordicapis-api.curity.io/hello_world"
 }
