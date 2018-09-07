@@ -23,6 +23,7 @@ import tools
 
 REGISTERED_CLIENT_FILENAME = 'registered_client.json'
 
+
 class Client:
     def __init__(self, config):
         self.config = config
@@ -79,7 +80,8 @@ class Client:
         :raises: raises error when http call fails
         """
         if 'registration_endpoint' not in self.config:
-            print 'Authorization server does not support Dynamic Client Registration. Please configure client credentials manually '
+            print 'Authorization server does not support Dynamic Client Registration. Please configure client ' \
+                  'credentials manually '
             return
 
         if 'client_id' in self.config:
@@ -101,6 +103,17 @@ class Client:
             tools.print_json(self.client_data)
 
         self.read_credentials_from_file()
+
+    def clean_registration(self, config):
+        """
+        Removes the registration file and reloads config
+        :return:
+        """
+        os.remove(REGISTERED_CLIENT_FILENAME)
+        config.pop('client_id')
+        config.pop('client_secret')
+        self.client_data = None
+        self.config = config
 
     def revoke(self, token):
         """
@@ -193,10 +206,9 @@ class Client:
             'User-Agent': 'CurityExample/1.0',
             'Accept': 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
         }
-        
+
         request = urllib2.Request(url, data, headers)
         return urllib2.urlopen(request, context=context)
-
 
     def __authn_req_args(self, state, scope, code_challenge, code_challenge_method="plain"):
         """
@@ -218,7 +230,6 @@ class Client:
             args.update(self.config['authn_parameters'])
         return args
 
-
     def get_client_data(self):
         if not self.client_data:
             self.read_credentials_from_file()
@@ -226,4 +237,4 @@ class Client:
         if self.client_data:
             masked = self.client_data
             masked['client_secret'] = '***********************************'
-            return json.dumps(masked)
+            return masked

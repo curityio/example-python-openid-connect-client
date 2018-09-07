@@ -98,6 +98,7 @@
             {% else %}
             <p>Client <strong>{{ client_id }}</strong> is successfully registered.</p>
             <span class="btn btn-info" id="client-conf" role="button">Client configuration ></span>
+            <a class="btn btn-info" href="/clean-registration" role="button">Delete client configuration</a>
             <pre class="json hidden">{{ client_data | e }}</pre>
             <p></p>
                 <p>Pressing Sign In will redirect you to {{ server_name | e }} and authorize

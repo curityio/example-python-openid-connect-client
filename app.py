@@ -13,16 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
-
 import json
 import sys
 import urllib2
 from flask import redirect, request, render_template, session, Flask
 from jwkest import BadSignature
-from urlparse import urlparse
 
 from client import Client
-from tools import decode_token, generate_random_string
+from tools import decode_token, generate_random_string, print_json
 from validator import JwtValidator
 from config import Config
 
@@ -66,10 +64,11 @@ def index():
                                 server_name=_config['issuer'],
                                 session=user)
     else:
-        is_registered = 'client_id' in _config
-        client_id = _config['client_id'] if is_registered else ''
+        client_data = _client.get_client_data()
+        is_registered = client_data and 'client_id' in client_data
+        client_id = client_data['client_id'] if is_registered else ''
         return render_template('welcome.html', registered=is_registered, client_id=client_id,
-                               client_data=_client.get_client_data())
+                               client_data=json.dumps(client_data))
 
 
 @_app.route('/start-login')
@@ -152,6 +151,17 @@ def register():
         _client.register()
     except Exception as e:
         return create_error('Could not register client dynamically: %s' % e, e)
+
+    return redirect_with_baseurl('/')
+
+
+@_app.route('/clean-registration')
+def clean_registration():
+    """
+    Remove the registration file to be able to re register
+    :return: redirects to /
+    """
+    _client.clean_registration(_config)
 
     return redirect_with_baseurl('/')
 
