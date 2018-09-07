@@ -55,36 +55,15 @@
         }
 
         $('document').ready(function () {
-            $('.list-group li').click(function () {
-                $(this).next().toggleClass('hidden');
-            });
-
-            var idPayload = $('#id-token-payload').text();
-            if (idPayload !== '') {
-                var idToken = JSON.parse(idPayload);
-                if (typeof idToken['sub'] !== 'undefined') {
-                    $('#sessionname').text(idToken['sub']);
-                }
-            }
-            else {
-                $('.welcome').addClass('hidden');
-            }
-
-            var apiStatusCode = $('#api-response-status-code');
-            if (apiStatusCode.length > 0 && apiStatusCode.text().trim() === '200') {
-                apiStatusCode.addClass('label-success');
-            } else {
-                apiStatusCode.addClass('label-danger').removeClass('label-success');
-                $('#api-response-data').addClass('alert').addClass('alert-danger');
-            }
-
             $('.btn').click(function (event) {
                 event.stopPropagation();
             });
 
+            $('#client-conf').click(function () {
+                $('.json').toggleClass('hidden');
+            });
             $('.json').each(function () {
                 $(this).text(prettyJson($(this).text()));
-                $(this).removeClass('hidden');
             });
         });
 
@@ -103,28 +82,35 @@
 </div>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-md-5">
-            <h2 class="welcome">Welcome <span id="sessionname"></span>!</h2>
+        <div class="col-md-12">
+            <h2 class="welcome text-center">Welcome!</h2>
         </div>
     </div>
     <div class="row jumbotron">
         <div class="col-md-3"></div>
         <div class="col-md-6">
-                <h2>This is a demo application to demonstrate the use for OAuth2 and OpenID Connect. </h2>
-
-                <p>Pressing Sign In will redirect you to {{ server_name | e }} and authorize
-                    the application python-flask to access your profile info. The data will only be used to
-                    demonstrate
-                    the possibilities of the OpenID Connect
-                    protocol and will not be stored. Be sure to revoke access when you are satisfied.</p>
-                <a class="btn btn-info" role="button" href="/start-login">Sign In</a>
+            <h2>This is a demo application to demonstrate the use for OAuth2 and OpenID Connect. </h2>
+            {% if not registered %}
+            <p>Press the Register button to register your unique client at {{ server_name }}.</p>
+            <a class="btn btn-info" role="button" href="/register">Register</a>
+            {% else %}
+            <p>Client <strong>{{ client_id }}</strong> is successfully registered.</p>
+            <span class="btn btn-info" id="client-conf" role="button">Client configuration ></span>
+            <a class="btn btn-info" href="/clean-registration" role="button">Delete client configuration</a>
+            <pre class="json hidden">{{ client_data | e }}</pre>
+            <p></p>
+            <p>Pressing Sign In will redirect you to {{ server_name | e }} and authorize
+                the application python-flask to access your profile info. The data will only be used to
+                demonstrate the possibilities of the OpenID Connect
+                protocol and will not be stored. Be sure to revoke access when you are satisfied.</p>
+            <a class="btn btn-info" role="button" href="/start-login">Sign In</a>
+            {% endif %}
         </div>
         <div class="col-md-3"></div>
     </div>
     <div class="row text-center">
-      <p>Copyright Curity AB 2017</p>
-      <a href="https://curity.io">Visit Curity.io for more information</a>
+        <p>Copyright Curity AB 2017-2018</p>
+        <a href="https://curity.io">Visit Curity.io for more information</a>
     </div>
 
 </div>
