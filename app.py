@@ -235,7 +235,12 @@ def oauth_callback():
         if 'issuer' not in _config:
             return create_error('Could not validate token: no issuer configured')
 
-        audience = _config['audience'] if 'audience' in _config else _config['client_id']
+        if 'audience' in _config:
+            audience = _config['audience']
+        elif 'template_client' in _config:
+            audience = _config['template_client']
+        else:
+            audience = _config['client_id']
 
         try:
             _jwt_validator.validate(token_data['id_token'], _config['issuer'], audience)

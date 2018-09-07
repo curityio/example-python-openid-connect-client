@@ -90,11 +90,18 @@ class Client:
         if 'dcr_access_token' not in self.config:
             self.get_registration_token()
 
-        print 'Registering client at %s with redirect_uri %s' % (self.config['base_url'], self.config['redirect_uri'])
-
-        data = {
-            'redirect_uris': [self.config['redirect_uri']]
-        }
+        if 'template_client' in self.config:
+            print 'Registering client using template_client: %s' % self.config['template_client']
+            data = {
+                'software_id': self.config['template_client']
+            }
+        else:
+            data = {
+                'client_name': 'OpenID Connect Demo',
+                'redirect_uris': [self.config['redirect_uri']]
+            }
+            if self.config['debug']:
+                print 'Registering client with data:\n %s' % json.dumps(data)
 
         register_response = self.__urlopen(self.config['registration_endpoint'], data=json.dumps(data),
                                            token=self.config['dcr_access_token'])
@@ -114,8 +121,9 @@ class Client:
         :return:
         """
         os.remove(REGISTERED_CLIENT_FILENAME)
-        config.pop('client_id')
-        config.pop('client_secret')
+        config.pop('client_id', None)
+        config.pop('client_secret', None)
+        config.pop('dcr_access_token', None)
         self.client_data = None
         self.config = config
 
