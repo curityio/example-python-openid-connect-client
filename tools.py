@@ -15,6 +15,7 @@
 ##########################################################################
 
 import base64
+import json
 import random
 import string
 import ssl
@@ -64,4 +65,8 @@ def get_ssl_context(config):
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
     return ctx
+
+
+def print_json(map):
+    print json.dumps(map, indent=4, sort_keys=True)
 
