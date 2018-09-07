@@ -14,30 +14,30 @@
 # limitations under the License.
 ##########################################################################
 
-import os
 import json
+import os
+
 
 class Config():
-
     _keys = ['api_endpoint',
-            'authn_parameters',
-            'authorization_endpoint',
-            'base_url',
-            'client_id',
-            'client_secret',
-            'debug',
-            'disable_https',
-            'discovery_url',
-            'issuer',
-            'audience',
-            'jwks_uri',
-            'logout_endpoint',
-            'port',
-            'redirect_uri',
-            'revocation_endpoint',
-            'scope',
-            'token_endpoint',
-            'verify_ssl_server']
+             'authn_parameters',
+             'authorization_endpoint',
+             'base_url',
+             'client_id',
+             'client_secret',
+             'debug',
+             'disable_https',
+             'discovery_url',
+             'issuer',
+             'audience',
+             'jwks_uri',
+             'logout_endpoint',
+             'port',
+             'redirect_uri',
+             'revocation_endpoint',
+             'scope',
+             'token_endpoint',
+             'verify_ssl_server']
 
     def __init__(self, filename):
         self.filename = filename
@@ -52,7 +52,7 @@ class Config():
         return self.store
 
     def _load_from_file(self, filename):
-        print 'Loading settings from %s' % filename
+        print('Loading settings from %s' % filename)
         self.store = json.loads(open(filename).read())
 
     def _update_config_from_environment(self):

@@ -14,17 +14,18 @@
 # limitations under the License.
 ##########################################################################
 
-import json
 import sys
-import urllib2
+import urllib.error
+import urllib.parse
+import urllib.request
+
 from flask import redirect, request, render_template, session, Flask
 from jwkest import BadSignature
-from urlparse import urlparse
 
 from client import Client
+from config import Config
 from tools import decode_token, generate_random_string
 from validator import JwtValidator
-from config import Config
 
 _app = Flask(__name__)
 
@@ -60,8 +61,8 @@ def index():
 
     if is_logged_in:
         return render_template('index.html',
-                            server_name=urlparse(_config['authorization_endpoint']).netloc,
-                            session=user)
+                               server_name=urllib.parse.urlparse(_config['authorization_endpoint']).netloc,
+                               session=user)
     else:
         return render_template('welcome.html')
 
@@ -92,7 +93,7 @@ def logout():
         del _session_store[session['session_id']]
     session.clear()
     if 'logout_endpoint' in _config:
-        print "Logging out against", _config['logout_endpoint']
+        print("Logging out against", _config['logout_endpoint'])
         return redirect(_config['logout_endpoint'] + '?redirect_uri=' + _base_url)
     return redirect_with_baseurl('/')
 
@@ -128,7 +129,7 @@ def revoke():
         if user.refresh_token:
             try:
                 _client.revoke(user.refresh_token)
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 return create_error('Could not revoke refresh token', e)
             user.refresh_token = None
 
@@ -149,23 +150,22 @@ def call_api():
             user.api_response = None
             if user.access_token:
                 try:
-                    request = urllib2.Request(_config['api_endpoint'])
-                    request.add_header('User-Agent', 'CurityExample/1.0')
-                    request.add_header("Authorization", "Bearer %s" % user.access_token)
-                    request.add_header("Accept", 'application/json')
-                    response = urllib2.urlopen(request)
-                    user.api_response = {'code': response.code, 'data': response.read()}
-                except urllib2.HTTPError as e:
-                    user.api_response = {'code': e.code, 'data': e.read()}
+                    req = urllib.request.Request(_config['api_endpoint'])
+                    req.add_header('User-Agent', 'CurityExample/1.0')
+                    req.add_header('Authorization', 'Bearer %s' % user.access_token)
+                    req.add_header('Accept', 'application/json')
+                    response = urllib.request.urlopen(req)
+                    user.api_response = {'code': response.code, 'data': response.read().decode()}
+                except urllib.error.HTTPError as e:
+                    user.api_response = {'code': e.code, 'data': e.read().decode()}
                 except Exception as e:
-                    message = e.message if len(e.message) > 0 else "unknown error"
-                    user.api_response = {"code": "unknown error", "data": message}
+                    user.api_response = {'code': 'unknown error', 'data': str(e)}
             else:
                 user.api_response = None
-                print 'No access token in session'
+                print('No access token in session')
         else:
             user.api_response = None
-            print 'No API endpoint configured'
+            print('No API endpoint configured')
 
     return redirect_with_baseurl('/')
 
@@ -206,9 +206,9 @@ def oauth_callback():
         try:
             _jwt_validator.validate(token_data['id_token'], _config['issuer'], _config['audience'])
         except BadSignature as bs:
-            return create_error('Could not validate token: %s' % bs.message)
+            return create_error('Could not validate token: %s' % bs)
         except Exception as ve:
-            return create_error("Unexpected exception: %s" % ve.message)
+            return create_error('Unexpected exception: %s' % ve)
 
         user.id_token = token_data['id_token']
 
@@ -221,20 +221,20 @@ def oauth_callback():
     return redirect_with_baseurl('/')
 
 
-def create_error(message, exception = None):
+def create_error(message, exception=None):
     """
     Print the error and output it to the page
     :param message:
     :return: redirects to index.html with the error message
     """
-    print 'Caught error!'
-    print message, exception
+    print('Caught error!')
+    print(message, exception)
     if _app:
         user = None
         if 'session_id' in session:
             user = _session_store.get(session['session_id'])
         return render_template('index.html',
-                               server_name=urlparse(_config['authorization_endpoint']).netloc,
+                               server_name=urllib.parse.urlparse(_config['authorization_endpoint']).netloc,
                                session=user,
                                error=message)
 
@@ -245,7 +245,7 @@ def load_config():
     :return:
     """
     if len(sys.argv) > 1:
-        print "Using an alternative config file: %s" % sys.argv[1]
+        print("Using an alternative config file: %s" % sys.argv[1])
         filename = sys.argv[1]
     else:
         filename = 'settings.json'
@@ -268,7 +268,7 @@ if __name__ == '__main__':
     if 'jwks_uri' in _config:
         _jwt_validator = JwtValidator(_config)
     else:
-        print 'Found no url to JWK set, will not be able to validate JWT signature.'
+        print('Found no url to JWK set, will not be able to validate JWT signature.')
         _jwt_validator = None
 
     # create a session store

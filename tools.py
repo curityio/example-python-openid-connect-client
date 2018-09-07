@@ -16,8 +16,8 @@
 
 import base64
 import random
-import string
 import ssl
+import string
 
 
 def base64_urldecode(s):
@@ -26,8 +26,9 @@ def base64_urldecode(s):
     return base64.urlsafe_b64decode(ascii_string)
 
 
-def base64_urlencode(s):
-    return base64.urlsafe_b64encode(s).split("=")[0].replace('+', '-').replace('/', '_')
+def base64_urlencode(b):
+    encoded_bytes = base64.urlsafe_b64encode(b)
+    return encoded_bytes.decode().split("=")[0]
 
 
 def decode_token(token):
@@ -40,7 +41,7 @@ def decode_token(token):
     parts = token.split('.')
 
     if token and len(parts) == 3:
-        return base64_urldecode(parts[0]), base64_urldecode(parts[1])
+        return base64_urldecode(parts[0]).decode(), base64_urldecode(parts[1]).decode()
 
     # It's not a JWT
     return None
@@ -60,8 +61,7 @@ def get_ssl_context(config):
     ctx = ssl.create_default_context()
 
     if 'verify_ssl_server' in config and not bool(config['verify_ssl_server']):
-        print 'Not verifying ssl certificates'
+        print('Not verifying ssl certificates')
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
     return ctx
-

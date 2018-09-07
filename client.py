@@ -14,10 +14,10 @@
 # limitations under the License.
 ##########################################################################
 import hashlib
-
 import json
-import urllib
-import urllib2
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import tools
 
@@ -26,18 +26,16 @@ class Client:
     def __init__(self, config):
         self.config = config
 
-        print 'Getting ssl context for oauth server'
+        print('Getting ssl context for oauth server')
         self.ctx = tools.get_ssl_context(self.config)
         self.__init_config()
-
 
     def __init_config(self):
         if 'discovery_url' in self.config:
             discovery = self.urlopen(self.config['discovery_url'], context=self.ctx)
             self.config.update(json.loads(discovery.read()))
         else:
-            print "No discovery url configured, all endpoints needs to be configured manually"
-
+            print("No discovery url configured, all endpoints needs to be configured manually")
 
         # Mandatory settings
         if 'authorization_endpoint' not in self.config:
@@ -61,7 +59,7 @@ class Client:
         :raises: raises error when http call fails
         """
         if 'revocation_endpoint' not in self.config:
-            print 'No revocation endpoint set'
+            print('No revocation endpoint set')
             return
 
         data = {
@@ -69,7 +67,7 @@ class Client:
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-        self.urlopen(self.config['revocation_endpoint'], urllib.urlencode(data), context=self.ctx)
+        self.urlopen(self.config['revocation_endpoint'], urllib.parse.urlencode(data).encode(), context=self.ctx)
 
     def refresh(self, refresh_token):
         """
@@ -83,7 +81,7 @@ class Client:
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-        token_response = self.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
+        token_response = self.urlopen(self.config['token_endpoint'], urllib.parse.urlencode(data).encode(), context=self.ctx)
         return json.loads(token_response.read())
 
     def get_authn_req_url(self, session, acr, forceAuthN, scope, forceConsent, allowConsentOptionDeselection):
@@ -93,9 +91,9 @@ class Client:
         """
         state = tools.generate_random_string()
         session['state'] = state
-        session['code_verifier'] = code_verifier = tools.generate_random_string(100)
+        session['code_verifier'] = code_verifier = tools.generate_random_string(100).encode()
 
-        code_challenge = tools.base64_urlencode(hashlib.sha256(code_verifier).digest())
+        code_challenge = self.__create_code_challenge(code_verifier)
 
         request_args = self.__authn_req_args(state, scope, code_challenge, "S256")
         if acr: request_args["acr_values"] = acr
@@ -108,9 +106,13 @@ class Client:
                 request_args["prompt"] = request_args.get("prompt", "") + " consent"
 
         delimiter = "?" if self.config['authorization_endpoint'].find("?") < 0 else "&"
-        login_url = "%s%s%s" % (self.config['authorization_endpoint'], delimiter, urllib.urlencode(request_args))
-        print "Redirect to federation service %s" % login_url
+        login_url = "%s%s%s" % (self.config['authorization_endpoint'], delimiter, urllib.parse.urlencode(request_args))
+        print("Redirect to federation service %s" % login_url)
         return login_url
+
+    def __create_code_challenge(self, code_verifier):
+        digest = hashlib.sha256(code_verifier).digest()
+        return tools.base64_urlencode(digest)
 
     def get_token(self, code, code_verifier):
         """
@@ -125,9 +127,10 @@ class Client:
 
         # Exchange code for tokens
         try:
-            token_response = self.urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
-        except urllib2.URLError as te:
-            print "Could not exchange code for tokens"
+            token_response = self.urlopen(self.config['token_endpoint'], urllib.parse.urlencode(data).encode(),
+                                          context=self.ctx)
+        except urllib.error.URLError as te:
+            print("Could not exchange code for tokens")
             raise te
         return json.loads(token_response.read())
 
@@ -143,10 +146,9 @@ class Client:
             'User-Agent': 'CurityExample/1.0',
             'Accept': 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
         }
-        
-        request = urllib2.Request(url, data, headers)
-        return urllib2.urlopen(request, context=context)
 
+        request = urllib.request.Request(url, data, headers)
+        return urllib.request.urlopen(request, context=context)
 
     def __authn_req_args(self, state, scope, code_challenge, code_challenge_method="plain"):
         """
