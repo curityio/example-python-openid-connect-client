@@ -166,9 +166,7 @@
                     {% endif %}
 
                     {% if session.front_end_id_token %}
-                        <li class="list-group-item">Front-end ID Token
-                            <a href="/revoke?id_token&front_end" class="btn btn-xs btn-danger pull-right">revoke</a>
-                        </li>
+                        <li class="list-group-item">Front-end ID Token</li>
                         <div>
                             <pre class="json hidden">{{ session.front_end_id_token_json[0] | e }}</pre>
                             <pre class="json hidden" id="id-token-payload">{{ session.front_end_id_token_json[1] | e }}</pre>
@@ -177,9 +175,7 @@
                     {% endif %}
 
                     {% if session.id_token %}
-                        <li class="list-group-item">Back-end ID Token
-                            <a href="/revoke?id_token&back_end" class="btn btn-xs btn-danger pull-right">revoke</a>
-                        </li>
+                        <li class="list-group-item">Back-end ID Token</li>
                         <div>
                             <pre class="json hidden">{{ session.id_token_json[0] | e }}</pre>
                             <pre class="json hidden" id="id-token-payload">{{ session.id_token_json[1] | e }}</pre>
