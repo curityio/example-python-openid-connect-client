@@ -89,7 +89,7 @@ class Client:
 
         dcr_access_token = None
 
-        if 'dcr_client_id' in self.config and "dcr_client_secret" in self.config:
+        if 'dcr_client_id' in self.config and 'dcr_client_secret' in self.config:
             # DCR endpoint requires an access token, so perform CC flow and get one
             dcr_access_token = self.get_registration_token()
 
@@ -289,6 +289,12 @@ class Client:
             headers['Authorization'] = 'Bearer %s' % token
 
         request = urllib2.Request(url, data, headers)
+
+        if self.config['debug']:
+            print 'Request url: ' + url
+            print 'Request headers:\n' + json.dumps(headers)
+            print 'Request data:\n' + json.dumps(data)
+
         return urllib2.urlopen(request, context=context)
 
     def __authn_req_args(self, state, scope, code_challenge, code_challenge_method="plain"):
