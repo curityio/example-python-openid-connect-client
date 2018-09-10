@@ -279,6 +279,12 @@
                         <label><input type="checkbox" name="allowConsentOptionDeselection" checked>Allow deselection of consent options</label>
                     </div>
                     <div class="form-group">
+                        <input type="text" name="ui_locales" class="form-control" placeholder="Space-separated list of UI Locales (e.g., 'en-US sv')">
+                    </div>
+                    <div class="form-group">
+                        <input type="number" min="10" max="3600" name="max_age" class="form-control" placeholder="Maximum age of SSO session">
+                    </div>
+                    <div class="form-group">
                         <input type="text" class="form-control" value="{{ scope }}" name="scope" id="scope" placeholder="Space-separated list of scopes">
                     </div>
                     <div style="margin-bottom: 1em">

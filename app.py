@@ -96,7 +96,9 @@ def start_code_flow():
                                           request.args.get("forceAuthN", False),
                                           scopes, request.args.get("forceConsent", False),
                                           request.args.get("allowConsentOptionDeselection", False),
-                                          request.args.get("responseType", "code"))
+                                          request.args.get("responseType", "code"),
+                                          request.args.get("ui_locales"),
+                                          request.args.get("max_age"))
     return redirect(login_url)
 
 
