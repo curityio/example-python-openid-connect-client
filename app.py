@@ -240,7 +240,7 @@ def call_api():
                 req.add_header('User-Agent', 'CurityExample/1.0')
                 req.add_header("Authorization", "Bearer %s" % access_token)
                 req.add_header("Accept", 'application/json')
-                response = urllib2.urlopen(req, context=tools.get_ssl_context(_config.context))
+                response = urllib2.urlopen(req, context=tools.get_ssl_context(_config))
                 user.api_response = {'code': response.code, 'data': response.read()}
             except urllib2.HTTPError as e:
                 user.api_response = {'code': e.code, 'data': e.read()}
@@ -416,10 +416,9 @@ if __name__ == '__main__':
     _disable_https = 'disable_https' in _config and _config['disable_https']
 
     if 'base_url' not in _config:
-        _config['base_url'] = ''
+        _config['base_url'] = 'https://localhost:%i' % port
 
-    debug = 'debug' in _config and _config['debug']
-    _config['debug'] = debug
+    debug = _config['debug'] = 'debug' in _config and _config['debug']
 
     if debug:
         print 'Running conf:'
