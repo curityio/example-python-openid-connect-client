@@ -1,5 +1,4 @@
 {
-  "redirect_uri": "https://localhost:5443/callback",
   "scope": "openid read",
   "logout_endpoint": "https://nordicapis.curity.io/authn/authenticate/logout",
   "issuer": "https://nordicapis.curity.io/~",
@@ -8,3 +7,4 @@
   "debug": true,
   "api_endpoint": "https://nordicapis-api.curity.io/hello_world"
 }
+

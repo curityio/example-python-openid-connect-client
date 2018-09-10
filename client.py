@@ -101,9 +101,10 @@ class Client:
         else:
             data = {
                 'client_name': 'OpenID Connect Demo',
-                "grant_types": ["implicit", "authorization_code", "refresh_token"],
-                'redirect_uris': [self.config['base_url'] + "/callback"]
+                'grant_types': ['implicit', 'authorization_code', 'refresh_token'],
+                'redirect_uris': [self.config['redirect_uri']]
             }
+
             if self.config['debug']:
                 print 'Registering client with data:\n %s' % json.dumps(data)
 
@@ -265,6 +266,8 @@ class Client:
             raise te
 
         json_response = json.loads(token_response.read())
+        if self.config['debug']:
+            print 'Got DCR token response: %s ' % json_response
 
         return json_response['access_token']
 

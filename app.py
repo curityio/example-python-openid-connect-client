@@ -14,7 +14,6 @@
 # limitations under the License.
 ##########################################################################
 
-import json
 import sys
 import urllib2
 from urlparse import urlparse
@@ -24,9 +23,9 @@ from jwkest import BadSignature
 
 import tools
 from client import Client
+from config import Config
 from tools import decode_token, generate_random_string, print_json
 from validator import JwtValidator
-from config import Config
 
 _app = Flask(__name__)
 
@@ -57,7 +56,7 @@ def index():
         user = _session_store.get(session['session_id'])
 
     if 'base_url' not in _config or not _config['base_url']:
-        _config['base_url'] = request.base_url
+        _config['base_url'] = request.base_url.rstrip('/')
 
     if user:
         if user.front_end_id_token:
@@ -73,8 +72,8 @@ def index():
             user.access_token_json = decode_token(user.access_token)
 
         return render_template('index.html',
-                            server_name=_config['issuer'],
-                            session=user, flow=session.get("flow", "code"))      
+                               server_name=_config['issuer'],
+                               session=user, flow=session.get("flow", "code"))
     else:
         client_data = _client.get_client_data()
         is_registered = client_data and 'client_id' in client_data
@@ -337,7 +336,8 @@ def callback(params):
 
     return user
 
-def create_error(message, exception = None):
+
+def create_error(message, exception=None):
     """
     Print the error and output it to the page
     :param exception:
@@ -399,8 +399,9 @@ if __name__ == '__main__':
         port = _config['port']
     elif "base_url" in _config:
         parse_result = urlparse(_config['base_url'])
+        _config['base_url'] = _config['base_url'].rstrip('/')
 
-        if parse_result.port != None:
+        if not parse_result.port:
             port = parse_result.port
         elif parse_result.scheme == "https":
             port = 443
