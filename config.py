@@ -25,6 +25,8 @@ class Config():
             'base_url',
             'client_id',
             'client_secret',
+            'dcr_client_id',
+            'dcr_client_secret',
             'debug',
             'disable_https',
             'discovery_url',
