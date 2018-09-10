@@ -56,7 +56,10 @@ def index():
         user = _session_store.get(session['session_id'])
 
     if 'base_url' not in _config or not _config['base_url']:
-        _config['base_url'] = request.base_url.rstrip('/')
+        _config['base_url'] = request.base_url
+
+    if 'redirect_uri' not in _config:
+        _config['redirect_uri'] = _config['base_url'].rstrip('/') + '/callback'
 
     if user:
         if user.front_end_id_token:
