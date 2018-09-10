@@ -21,22 +21,28 @@ Python dependencies can be installed by using PIP: `pip install -r requirements.
 ## settings.json
 Settings.json is used as a configuration file for the example app. Change the values to match your system.
 
-Name            | Type    | Mandatory | Default  | Description
-----------------| ------- | :-------: | -------- | :---------------
-`redirect_uri`  | string  |    ✓      |          | The redirect uri to use, must be registered for the client at the OpenID Connect server.
-`client_id`     | string  |    ✓      |          | The id for the client. Used to authenticate the client against the authorization server endpoint.
-`client_secret` | string  |    ✓      |          | The shared secret to use for authentication against the token endpoint.
-`discovery_url` | URL     |           |          | The URL where the metadata of the server can be found. Should contain information about the endpoints and keys to be used. Configuration from the discovery url will override configuration from settings.json.
-`scope`         | string  |           | `openid` | The scopes to ask for.
-`jwks_uri`      | URL     | if `discovery_url` is not set and the `openid` scope is requested          |          | The URL that points to the JWK set.
-`authorization_endpoint` | URL | if `discovery_url` is not set     |          | The URL to the authorization_endpoint.
-`token_endpoint`| URL     |           |          | The URL to the token_endpoint. Mandatory if `discovery_url` is not set.
-`issuer`        | string  | if the `openid` scope is requested and `discovery_url` is not set          |          | The ID of the token issuer.
-`verify_ssl_server` | boolean |       | `true`   | Set to false to disable certificate checks.
-`debug`         | boolean |           | `false`  | If set to true, Flask will be in debug mode and write stacktraces if an error occurs
-`port`          | number  |           | `5443`   | The port that the Flask server should listen to
-`disable_https` | boolean |           | `false`  | Set to true to run on http
-`base_url`      | string  |           |          | base url to be added to internal redirects. Set this to enable the client to be behind a proxy.
+Name                | Type    | Default  | Description
+--------------------| ------- | -------- | :---------------
+`issuer`            | string  |          | The ID of the token issuer. This is used for both OpenID Connect Discovery, and validating a ID Token. Mandatory for discovery
+`client_id`         | string  |          | The ID for the client. Used to authenticate the client against the authorization server endpoint.
+`client_secret`     | string  |          | The shared secret to use for authentication against the token endpoint.
+`dcr_client_id`     | string  |          | The client ID of the client for to use for registration.
+`dcr_client_secret` | string  |          | The client secret of the client for to use for registration.
+`scope`             | string  | `openid` | The scopes to ask for.
+`verify_ssl_server` | boolean | `true`   | Set to false to disable certificate checks.
+`debug`             | boolean | `false`  | If set to true, Flask will be in debug mode and write stacktraces if an error occurs. Some extra logging is also printed.
+`port`              | number  | `5443`   | The port that the Flask server should listen to
+`disable_https`     | boolean | `false`  | Set to true to run on http
+`logout_endpoint`   | string  |          | The URL to the logout endpoint at the authentication service. If set, the user will be redirected here after a logout has been made in the application. 
+`base_url`          | string  |          | base url to be added to internal redirects. If this is not configured, the base url will be extracted from the first request to the index page
+
+### Mandatory parameters if discovery is not available
+Name                     | Type |  Description
+-------------------------|------|-------------
+`jwks_uri`               | URL  |  The URL that points to the JWK set. Mandatory if the openid scope is requested.
+`authorization_endpoint` |      |  The URL to the authorization endpoint.
+`token_endpoint`         | URL  |  The URL to the token endpoint.
+`registration_endpoint`  | URL  |  The URL to the registration endpoint.
 
 ## Docker
 To run the example in a Docker container, build an image and run a container like this.:
