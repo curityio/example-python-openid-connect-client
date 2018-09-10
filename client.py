@@ -38,7 +38,7 @@ class Client:
         if 'issuer' in self.config:
             meta_data_url = self.config['issuer'] + '/.well-known/openid-configuration'
             print 'Fetching config from: %s' % meta_data_url
-            meta_data = urllib2.urlopen(meta_data_url)
+            meta_data = urllib2.urlopen(meta_data_url, context=self.ctx)
             if meta_data:
                 self.config.update(json.load(meta_data))
             else:
@@ -87,8 +87,11 @@ class Client:
         if 'client_id' in self.config:
             raise Exception('Client is already registered')
 
-        if 'dcr_access_token' not in self.config:
-            self.get_registration_token()
+        dcr_access_token = None
+
+        if 'dcr_client_id' in self.config and "dcr_client_secret" in self.config:
+            # DCR endpoint requires an access token, so perform CC flow and get one
+            dcr_access_token = self.get_registration_token()
 
         if 'template_client' in self.config:
             print 'Registering client using template_client: %s' % self.config['template_client']
@@ -98,13 +101,14 @@ class Client:
         else:
             data = {
                 'client_name': 'OpenID Connect Demo',
-                'redirect_uris': [self.config['redirect_uri']]
+                "grant_types": ["implicit", "authorization_code", "refresh_token"],
+                'redirect_uris': [self.config['base_url'] + "/callback"]
             }
             if self.config['debug']:
                 print 'Registering client with data:\n %s' % json.dumps(data)
 
         register_response = self.__urlopen(self.config['registration_endpoint'], data=json.dumps(data),
-                                           token=self.config['dcr_access_token'])
+                                           context=self.ctx, token=dcr_access_token)
         self.client_data = json.loads(register_response.read())
 
         with open(REGISTERED_CLIENT_FILENAME, 'w') as outfile:
@@ -123,11 +127,10 @@ class Client:
         os.remove(REGISTERED_CLIENT_FILENAME)
         config.pop('client_id', None)
         config.pop('client_secret', None)
-        config.pop('dcr_access_token', None)
         self.client_data = None
         self.config = config
 
-    def revoke(self, token):
+    def revoke(self, token, token_type_hint="access_token"):
         """
         Revoke the token
         :param token: the token to revoke
@@ -258,7 +261,8 @@ class Client:
             raise te
 
         json_response = json.loads(token_response.read())
-        self.config['dcr_access_token'] = json_response['access_token']
+
+        return json_response['access_token']
 
     def __urlopen(self, url, data=None, context=None, token=None):
         """

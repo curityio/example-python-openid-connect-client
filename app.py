@@ -17,9 +17,12 @@
 import json
 import sys
 import urllib2
+from urlparse import urlparse
+
 from flask import redirect, request, render_template, session, abort, Flask
 from jwkest import BadSignature
 
+import tools
 from client import Client
 from tools import decode_token, generate_random_string, print_json
 from validator import JwtValidator
@@ -77,7 +80,7 @@ def index():
         is_registered = client_data and 'client_id' in client_data
         client_id = client_data['client_id'] if is_registered else ''
         return render_template('welcome.html', registered=is_registered, client_id=client_id,
-                               client_data=json.dumps(client_data))
+                               server_name=_config['issuer'], client_data=client_data)
 
 
 @_app.route('/start-login')
@@ -233,7 +236,7 @@ def call_api():
                 req.add_header('User-Agent', 'CurityExample/1.0')
                 req.add_header("Authorization", "Bearer %s" % access_token)
                 req.add_header("Accept", 'application/json')
-                response = urllib2.urlopen(req)
+                response = urllib2.urlopen(req, context=tools.get_ssl_context(_config.context))
                 user.api_response = {'code': response.code, 'data': response.read()}
             except urllib2.HTTPError as e:
                 user.api_response = {'code': e.code, 'data': e.read()}
@@ -392,6 +395,15 @@ if __name__ == '__main__':
     # some default values
     if 'port' in _config:
         port = _config['port']
+    elif "base_url" in _config:
+        parse_result = urlparse(_config['base_url'])
+
+        if parse_result.port != None:
+            port = parse_result.port
+        elif parse_result.scheme == "https":
+            port = 443
+        else:
+            port = 80
     else:
         port = 5443
 
