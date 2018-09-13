@@ -167,7 +167,7 @@ class Client:
         return json.loads(token_response.read())
 
     def get_authn_req_url(self, session, acr, forceAuthN, scope, forceConsent, allowConsentOptionDeselection,
-                          response_type, ui_locales, max_age):
+                          response_type, ui_locales, max_age, claims):
         """
         :param session: the session, will be used to keep the OAuth state
         :param acr: The acr to request
@@ -199,6 +199,8 @@ class Client:
         if max_age: request_args["max_age"] = max_age
 
         if forceAuthN: request_args["prompt"] = "login"
+
+        if claims: request_args["claims"] = claims
 
         if forceConsent:
             if allowConsentOptionDeselection:

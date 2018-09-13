@@ -101,7 +101,8 @@ def start_code_flow():
                                           request.args.get("allowConsentOptionDeselection", False),
                                           request.args.get("responseType", "code"),
                                           request.args.get("ui_locales"),
-                                          request.args.get("max_age"))
+                                          request.args.get("max_age"),
+                                          request.args.get("claims"))
     return redirect(login_url)
 
 

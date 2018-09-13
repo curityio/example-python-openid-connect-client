@@ -285,8 +285,21 @@
                         <input type="number" min="10" max="3600" name="max_age" class="form-control" placeholder="Maximum age of SSO session">
                     </div>
                     <div class="form-group">
-                        <input type="text" class="form-control" value="{{ scope }}" name="scope" id="scope" placeholder="Space-separated list of scopes">
+                        <input type="text" class="form-control" name="scope" id="scope" placeholder="Space-separated list of scopes (e.g., openid)">
                     </div>
+                    <div class="form-group">
+                        <label for="claims">Claims</label>
+                        <textarea name="claims" id="claims" rows="5" class="json form-control">
+                            {
+                                "id_token": {
+
+                                },
+                                "userinfo": {
+                                }
+                            }
+                        </textarea>
+                    </div>
+
                     <div style="margin-bottom: 1em">
                         <button type="submit" class="btn btn-default btn-group-justified mb">Restart Login</button>
                     </div>
