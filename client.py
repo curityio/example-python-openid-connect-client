@@ -239,10 +239,7 @@ class Client:
         if not self.client_data:
             self.read_credentials_from_file()
 
-        if self.client_data:
-            masked = self.client_data
-            masked['client_secret'] = '***********************************'
-            return masked
+        return self.client_data
 
     def get_registration_token(self):
 
