@@ -82,7 +82,8 @@ def index():
         is_registered = client_data and 'client_id' in client_data
         client_id = client_data['client_id'] if is_registered else ''
         return render_template('welcome.html', registered=is_registered, client_id=client_id,
-                               server_name=_config['issuer'], client_data=client_data)
+                               server_name=_config['issuer'], client_data=client_data,
+                               authorization_endpoint=_config["authorization_endpoint"])
 
 
 @_app.route('/start-login')
