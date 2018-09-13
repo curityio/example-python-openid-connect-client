@@ -80,7 +80,7 @@ def index():
     else:
         if 'client_id' not in _config:
             client_data = _client.get_client_data()
-            client_id = client_data['client_id'] if is_registered else ''
+            client_id = client_data['client_id'] if 'client_id' in _config else ''
         else:
             # static credentials
             client_data = None
