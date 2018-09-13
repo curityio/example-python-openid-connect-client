@@ -78,10 +78,14 @@ def index():
                                server_name=_config['issuer'],
                                session=user, flow=session.get("flow", "code"))
     else:
-        client_data = _client.get_client_data()
-        is_registered = client_data and 'client_id' in client_data
-        client_id = client_data['client_id'] if is_registered else ''
-        return render_template('welcome.html', registered=is_registered, client_id=client_id,
+        if 'client_id' not in _config:
+            client_data = _client.get_client_data()
+            client_id = client_data['client_id'] if is_registered else ''
+        else:
+            # static credentials
+            client_data = None
+            client_id = _config['client_id']
+        return render_template('welcome.html', client_id=client_id,
                                server_name=_config['issuer'], client_data=client_data)
 
 
