@@ -257,6 +257,15 @@ def call_api():
 
 @_app.route("/callback-js", methods=['POST'])
 def ajax_callback():
+    if 'state' not in session or session['state'] != request.form['state']:
+        abort(400) # TODO: Provide nicer error to AJAX client
+
+    if "code_verifier" not in session:
+        abort(400)
+
+    if 'code' not in request.form:
+        abort(400)
+
     user = callback(request.form)
 
     user.front_end_id_token = request.form.get("id_token", "")
@@ -282,6 +291,15 @@ def oauth_callback():
         # This is the callback for a hybrid or implicit flow
         return render_template('index.html')
 
+    if 'state' not in session or session['state'] != request.args['state']:
+        return create_error('Missing or invalid state')
+
+    if "code_verifier" not in session:
+        return create_error("No code_verifier in session")
+
+    if 'code' not in request.args:
+        return create_error('No code in response')
+
     user = callback(request.args)
 
     session['session_id'] = generate_random_string()
@@ -291,15 +309,6 @@ def oauth_callback():
 
 
 def callback(params):
-    if 'state' not in session or session['state'] != params['state']:
-        return create_error('Missing or invalid state')
-
-    if "code_verifier" not in session:
-        return create_error("No code_verifier in session")
-
-    if 'code' not in params:
-        return create_error('No code in response')
-
     session.pop('state', None)
 
     try:
@@ -351,7 +360,7 @@ def create_error(message, exception=None):
     print 'Caught error!'
     print message, exception
     if _app:
-        user = None
+        user = UserSession()
         if 'session_id' in session:
             user = _session_store.get(session['session_id'])
         return render_template('index.html',
