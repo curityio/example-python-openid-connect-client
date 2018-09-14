@@ -79,10 +79,18 @@ def index():
                                session=user, flow=session.get("flow", "code"))
     else:
         client_data = _client.get_client_data()
-        is_registered = client_data and 'client_id' in client_data
-        client_id = client_data['client_id'] if is_registered else ''
-        return render_template('welcome.html', registered=is_registered, client_id=client_id,
-                               server_name=_config['issuer'], client_data=client_data,
+        dynamically_registered = bool(client_data and 'client_id' in client_data)
+        using_static_registration = "client_id" in _config and "client_secret" in _config
+        registered = dynamically_registered or using_static_registration
+        client_id = client_data['client_id'] if dynamically_registered else _config.get("client_id", "")
+
+        return render_template('welcome.html',
+                               registered=registered,
+                               client_id=client_id,
+                               server_name=_config['issuer'],
+                               client_data=client_data,
+                               flow="code",
+                               using_dynamic_registration=dynamically_registered,
                                authorization_endpoint=_config["authorization_endpoint"])
 
 
