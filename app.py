@@ -81,11 +81,15 @@ def index():
         if 'client_id' not in _config:
             client_data = _client.get_client_data()
             client_id = client_data['client_id'] if 'client_id' in _config else ''
+            client_name = client_data['client_name'] if client_data and 'client_name' in client_data else client_id
         else:
             # static credentials
             client_data = None
             client_id = _config['client_id']
-        return render_template('welcome.html', client_id=client_id,
+            client_name = client_id
+        return render_template('welcome.html',
+                               client_id=client_id,
+                               client_name=client_name,
                                server_name=_config['issuer'], client_data=client_data)
 
 
