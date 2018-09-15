@@ -52,9 +52,8 @@ class Client:
         if 'token_endpoint' not in self.config:
             raise Exception('token_endpoint not set.')
 
-        self.read_credentials_from_file()
         if 'client_id' not in self.config:
-            print 'Client is not registered.'
+            self.read_credentials_from_file()
 
         if 'scope' not in self.config:
             self.config['scope'] = 'openid'
