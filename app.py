@@ -61,6 +61,10 @@ def index():
     if 'redirect_uri' not in _config:
         _config['redirect_uri'] = _config['base_url'].rstrip('/') + '/callback'
 
+    if isinstance(user, (str, unicode)):
+        # User is a string! Probably a bunch of HTML from a previous error. Just bail and hope for the best.
+        return user
+
     if user:
         if user.front_end_id_token:
             user.front_end_id_token_json = decode_token(user.front_end_id_token)
