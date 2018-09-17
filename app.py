@@ -378,6 +378,7 @@ def create_error(message, exception=None):
         if 'session_id' in session:
             user = _session_store.get(session['session_id'])
         return render_template('index.html',
+                               flow="code",
                                server_name=_config['issuer'],
                                session=user,
                                error=message)
