@@ -16,12 +16,26 @@
 import hashlib
 import json
 import os
+import time
 import urllib
 import urllib2
+
+from jwkest.jwk import KEYS
+from jwkest.jws import JWS
 
 import tools
 
 REGISTERED_CLIENT_FILENAME = 'registered_client.json'
+
+
+def make_request_object(request_args, jwk):
+    keys = KEYS()
+    jws = JWS(request_args)
+
+    if jwk:
+        keys.load_jwks(json.dumps(dict(keys=[jwk])))
+
+    return jws.sign_compact(keys)
 
 
 class Client:
@@ -167,7 +181,7 @@ class Client:
         return json.loads(token_response.read())
 
     def get_authn_req_url(self, session, acr, forceAuthN, scope, forceConsent, allowConsentOptionDeselection,
-                          response_type, ui_locales, max_age, claims):
+                          response_type, ui_locales, max_age, claims, send_parameters_via):
         """
         :param session: the session, will be used to keep the OAuth state
         :param acr: The acr to request
@@ -187,7 +201,7 @@ class Client:
                         'state': state,
                         'code_challenge': code_challenge,
                         'code_challenge_method': "S256",
-                        'redirect_uri': self.config['redirect_uri']}
+                        'redirect_uri': self.config.get('redirect_uri', "")}
 
         if 'authn_parameters' in self.config:
             request_args.update(self.config['authn_parameters'])
@@ -212,6 +226,27 @@ class Client:
             request_args["nonce"] = session["nonce"] = tools.generate_random_string()
 
         delimiter = "?" if self.config['authorization_endpoint'].find("?") < 0 else "&"
+
+        if send_parameters_via == "request_object":
+            request_object_claims = request_args
+            request_object_claims.update(dict(
+                issuer=self.config["client_id"],
+                aud=self.config["issuer"],
+                exp=int(time.time()) + 180,  # Expires in 3 minutes
+                purpose="request"  # FIXME: Required for Curity's implementation of request object (for some reason)
+            ))
+            request_args = dict(
+                request=make_request_object(request_object_claims, self.config.get("request_object_key", None)),
+                client_id=request_args["client_id"],
+                code_challenge=request_args["code_challenge"],  # FIXME: Curity can't currently handle PCKE if not
+                code_challenge_method=request_args["code_challenge_method"],  # provided on query string
+                scope=request_args["scope"],
+                response_type=request_args["response_type"],
+                redirect_uri=request_args["redirect_uri"]  # FIXME: Curity requires this even if in request obj
+            )
+        elif send_parameters_via == "request_uri":
+            request_args = None  # TODO: Implement request URI support
+
         login_url = "%s%s%s" % (self.config['authorization_endpoint'], delimiter, urllib.urlencode(request_args))
 
         print "Redirect to %s" % login_url

@@ -110,7 +110,8 @@ def start_code_flow():
                                           request.args.get("responseType", "code"),
                                           request.args.get("ui_locales"),
                                           request.args.get("max_age"),
-                                          request.args.get("claims"))
+                                          request.args.get("claims"),
+                                          _config.get("send_parameters_via", "query_string"))
     return redirect(login_url)
 
 
