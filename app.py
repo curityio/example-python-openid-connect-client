@@ -61,6 +61,10 @@ def index():
     if 'redirect_uri' not in _config:
         _config['redirect_uri'] = _config['base_url'].rstrip('/') + '/callback'
 
+    if isinstance(user, (str, unicode)):
+        # User is a string! Probably a bunch of HTML from a previous error. Just bail and hope for the best.
+        return user
+
     if user:
         if user.front_end_id_token:
             user.front_end_id_token_json = decode_token(user.front_end_id_token)
@@ -79,10 +83,19 @@ def index():
                                session=user, flow=session.get("flow", "code"))
     else:
         client_data = _client.get_client_data()
-        is_registered = client_data and 'client_id' in client_data
-        client_id = client_data['client_id'] if is_registered else ''
-        return render_template('welcome.html', registered=is_registered, client_id=client_id,
-                               server_name=_config['issuer'], client_data=client_data)
+        dynamically_registered = bool(client_data and 'client_id' in client_data)
+        using_static_registration = "client_id" in _config and "client_secret" in _config
+        registered = dynamically_registered or using_static_registration
+        client_id = client_data['client_id'] if dynamically_registered else _config.get("client_id", "")
+
+        return render_template('welcome.html',
+                               registered=registered,
+                               client_id=client_id,
+                               server_name=_config['issuer'],
+                               client_data=client_data,
+                               flow="code",
+                               using_dynamic_registration=dynamically_registered,
+                               authorization_endpoint=_config["authorization_endpoint"])
 
 
 @_app.route('/start-login')
@@ -100,7 +113,9 @@ def start_code_flow():
                                           request.args.get("allowConsentOptionDeselection", False),
                                           request.args.get("responseType", "code"),
                                           request.args.get("ui_locales"),
-                                          request.args.get("max_age"))
+                                          request.args.get("max_age"),
+                                          request.args.get("claims"),
+                                          _config.get("send_parameters_via", "query_string"))
     return redirect(login_url)
 
 
@@ -256,6 +271,15 @@ def call_api():
 
 @_app.route("/callback-js", methods=['POST'])
 def ajax_callback():
+    if 'state' not in session or session['state'] != request.form['state']:
+        abort(400) # TODO: Provide nicer error to AJAX client
+
+    if "code_verifier" not in session:
+        abort(400)
+
+    if 'code' not in request.form:
+        abort(400)
+
     user = callback(request.form)
 
     user.front_end_id_token = request.form.get("id_token", "")
@@ -281,6 +305,15 @@ def oauth_callback():
         # This is the callback for a hybrid or implicit flow
         return render_template('index.html')
 
+    if 'state' not in session or session['state'] != request.args['state']:
+        return create_error('Missing or invalid state')
+
+    if "code_verifier" not in session:
+        return create_error("No code_verifier in session")
+
+    if 'code' not in request.args:
+        return create_error('No code in response')
+
     user = callback(request.args)
 
     session['session_id'] = generate_random_string()
@@ -290,15 +323,6 @@ def oauth_callback():
 
 
 def callback(params):
-    if 'state' not in session or session['state'] != params['state']:
-        return create_error('Missing or invalid state')
-
-    if "code_verifier" not in session:
-        return create_error("No code_verifier in session")
-
-    if 'code' not in params:
-        return create_error('No code in response')
-
     session.pop('state', None)
 
     try:
@@ -350,10 +374,11 @@ def create_error(message, exception=None):
     print 'Caught error!'
     print message, exception
     if _app:
-        user = None
+        user = UserSession()
         if 'session_id' in session:
             user = _session_store.get(session['session_id'])
         return render_template('index.html',
+                               flow="code",
                                server_name=_config['issuer'],
                                session=user,
                                error=message)
