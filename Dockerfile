@@ -16,8 +16,6 @@ ADD requirements.txt /usr/src/
 RUN pip install --no-cache-dir -r /usr/src/requirements.txt
 WORKDIR /oidc-example
 EXPOSE 5443
-VOLUME /oidc-example/settings.json
-
 
 RUN mkdir -p /oidc-example
 ADD keys /oidc-example/keys
@@ -31,3 +29,4 @@ RUN echo "{}" >> /oidc-example/settings.json
 ADD *.py /oidc-example/
 
 CMD ["python", "app.py"]
+
