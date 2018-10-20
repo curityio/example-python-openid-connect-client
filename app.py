@@ -425,16 +425,6 @@ if __name__ == '__main__':
     # some default values
     if 'port' in _config:
         port = _config['port']
-    elif "base_url" in _config:
-        parse_result = urlparse(_config['base_url'])
-        _config['base_url'] = _config['base_url'].rstrip('/')
-
-        if not parse_result.port:
-            port = parse_result.port
-        elif parse_result.scheme == "https":
-            port = 443
-        else:
-            port = 80
     else:
         port = 5443
 
