@@ -424,7 +424,7 @@ if __name__ == '__main__':
 
     # some default values
     if 'port' in _config:
-        port = _config['port']
+        port = int(_config['port'])
     else:
         port = 5443
 
