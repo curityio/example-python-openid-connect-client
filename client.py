@@ -75,7 +75,7 @@ class Client:
 
     def read_credentials_from_file(self):
         if not os.path.isfile(REGISTERED_CLIENT_FILENAME):
-            print 'Client is not registered'
+            print 'Client is not dynamically registered'
             return
 
         try:
