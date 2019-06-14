@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 ##########################################################################
 # Copyright 2016 Curity AB
 #
@@ -255,6 +257,11 @@ def call_api():
                 req.add_header('User-Agent', 'CurityExample/1.0')
                 req.add_header("Authorization", "Bearer %s" % access_token)
                 req.add_header("Accept", 'application/json')
+                
+                if 'subscription_key' in _config:
+                    req.add_header('Ocp-Apim-Subscription-Key', _config['subscription_key'])
+                    req.add_header('Ocp-Apim-Trace', 'true')
+
                 response = urllib2.urlopen(req, context=tools.get_ssl_context(_config))
                 user.api_response = {'code': response.code, 'data': response.read()}
             except urllib2.HTTPError as e:
