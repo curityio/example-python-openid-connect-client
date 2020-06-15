@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="static/bootstrap.min.css">
     <link rel="stylesheet" href="static/bootstrap-theme.min.css">
     <script src="static/jquery-3.1.1.min.js"></script>
+    <script src="static/ace.js" type="text/javascript" charset="utf-8"></script>
 
     <style type="text/css">
         .navbar img {
@@ -48,6 +49,11 @@
         #response_type_label {
             padding-left: 0;
             padding-bottom: 0.5em;
+        }
+
+        #claims_editor {
+            position: relative;
+            height: 250px;
         }
     </style>
 
@@ -289,15 +295,70 @@
                     </div>
                     <div class="form-group">
                         <label for="claims">Claims</label>
-                        <textarea name="claims" id="claims" rows="5" class="json form-control">
-                            {
-                                "id_token": {
+                        <input name="claims" type="hidden">
+                        <div id="claims_editor">{
+    "id_token": {
 
+    },
+    "userinfo": {
+    }
+ }</div>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="...">
+                            <button type="button" class="btn btn-default" id="zoneinfoClaim">Zoneinfo</button>
+                            <button type="button" class="btn btn-default" id="addressClaim">Address</button>
+                            <button type="button" class="btn btn-default" id="phoneTimezoneClaims">Phone &amp; Timezone</button>
+                            <button type="button" class="btn btn-default" id="resetClaims">Reset</button>
+                        </div>
+
+                        <script>
+                            var claimsFormInput = $('input[name="claims"]').hide();
+                            var editor = ace.edit("claims_editor");
+                            var originalValue = editor.getValue();
+
+                            $("#zoneinfoClaim").click({
+                                "id_token": {
+                                    "zoneinfo": {"essential": true}
+                                }
+                            }, setClaims);
+
+                            $("#addressClaim").click({
+                                "id_token": {
+                                    "address": {
+                                        "formatted": {"essential": true}
+                                    }
+                                }
+                            }, setClaims);
+
+                            $("#phoneTimezoneClaims").click({
+                                "id_token": {
+                                    "zoneinfo": {"essential": true}
                                 },
                                 "userinfo": {
+                                    "phone_number": {"essential": null}
                                 }
+                            }, setClaims);
+
+                            $("#resetClaims").click(originalValue, setClaims);
+
+                            editor.on('change', function(){
+                                claimsFormInput.val(editor.getValue());
+                            });
+
+                            editor.setTheme("ace/theme/dreamweaver");
+                            editor.session.setMode("ace/mode/json");
+                            function setClaims(event) {
+                                var data = event.data;
+                                var stringValue = typeof data === "string" ? data : JSON.stringify(data, null, "    ");
+
+                                editor.setValue(stringValue);
+                                editor.clearSelection();
+
+                                var forceConsent = originalValue !== data;
+                                var scopeValue = forceConsent ? "openid" : "";
+                                $("#scope").val(scopeValue);
+                                $("input[name='forceConsent']").prop('checked', forceConsent);
                             }
-                        </textarea>
+                        </script>
                     </div>
 
                     <div style="margin-bottom: 1em">
