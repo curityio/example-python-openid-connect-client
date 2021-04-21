@@ -33,7 +33,7 @@ class Config():
             'issuer',
             'audience',
             'jwks_uri',
-            'logout_endpoint',
+            'end_session_endpoint',
             'port',
             'redirect_uri',
             'revocation_endpoint',
