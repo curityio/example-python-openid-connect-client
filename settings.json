@@ -1,5 +1,5 @@
 {
-  "issuer": "https://login-garcher.eu.ngrok.io/oauth/v2/oauth-anonymous",
+  "issuer": "https://localhost:8443/oauth/v2/oauth-anonymous",
   "api_endpoint": "https://localhost:3000",
   "verify_ssl_server": false,
   "debug": true,
