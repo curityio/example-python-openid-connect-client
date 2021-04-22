@@ -201,7 +201,7 @@ class Client:
                         'state': state,
                         'code_challenge': code_challenge,
                         'code_challenge_method': "S256",
-                        'redirect_uri': self.config.get('redirect_uri', "")}
+                        'redirect_uri': self.config.get('redirect_uri')}
 
         if 'authn_parameters' in self.config:
             request_args.update(self.config['authn_parameters'])

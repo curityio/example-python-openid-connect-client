@@ -130,11 +130,10 @@ def logout():
     if 'session_id' in session:
         del _session_store[session['session_id']]
     session.clear()
-    if 'logout_endpoint' in _config:
-        print "Logging out against", _config['logout_endpoint']
-        return redirect(_config['logout_endpoint'] + '?redirect_uri=' + _config['base_url'])
-    return redirect_with_baseurl('/')
-
+    
+    print "Logging out at ", _config['end_session_endpoint']
+    logout_request = _config['end_session_endpoint'] + '?client_id=' + _config['client_id'] + '&post_logout_redirect_uri=' + _config['base_url']
+    return redirect(logout_request)
 
 @_app.route('/refresh')
 def refresh():
