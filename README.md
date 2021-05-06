@@ -16,7 +16,7 @@ Browse to https://localhost:5443 to see the app.
 
 ## Dependencies
 
-**python 2.x** (tested with python 2.7.10)
+**python 3.x** (tested with python 3.9.1)
 
 **OpenSSL 1.0** to be able to do modern TLS versions. Python together with 0.9.x has a bug that makes it impossible to select protocol in the handshake, so it cannot connect to servers that have disabled SSLv2.
 
@@ -53,7 +53,7 @@ Name                     | Type |  Description
 To run the example in a Docker container, build an image and run a container like this.:
 
 ```bash
-$ docker build -t curityio/openid-python-example
+$ docker build -t curityio/openid-python-example .
 $ docker run -ti curityio/openid-python-example
 
 ```

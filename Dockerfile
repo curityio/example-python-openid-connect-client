@@ -9,7 +9,7 @@
 # For further information, please contact Curity AB.
 #
 
-FROM python:2.7
+FROM python:3.9
 MAINTAINER Curity AB
 
 ADD requirements.txt /usr/src/
