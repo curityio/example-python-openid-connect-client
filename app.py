@@ -448,4 +448,4 @@ if __name__ == '__main__':
     if _disable_https:
         _app.run('0.0.0.0', debug=debug, port=port)
     else:
-        _app.run('0.0.0.0', debug=debug, port=port, ssl_context=('keys/localhost.pem', 'keys/localhost.pem'))
+        _app.run('0.0.0.0', debug=debug, port=port, ssl_context='adhoc')

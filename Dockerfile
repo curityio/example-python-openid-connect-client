@@ -18,7 +18,6 @@ WORKDIR /oidc-example
 EXPOSE 5443
 
 RUN mkdir -p /oidc-example
-ADD keys /oidc-example/keys
 ADD static /oidc-example/static
 ADD templates /oidc-example/templates
 
