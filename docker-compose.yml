@@ -1,7 +1,7 @@
 version: '2'
 services:
   oidc-example:
-    image: curity/oidc-python-demo:latest
+    image: curity.azurecr.io/curity/oidc-python-demo:latest
     ports:
       - 5443:5443
     environment:
