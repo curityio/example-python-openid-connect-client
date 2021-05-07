@@ -17,8 +17,8 @@
 ##########################################################################
 
 import sys
-import urllib2
-from urlparse import urlparse
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
 
 from flask import redirect, request, render_template, session, abort, Flask
 from jwkest import BadSignature
@@ -63,7 +63,7 @@ def index():
     if 'redirect_uri' not in _config:
         _config['redirect_uri'] = _config['base_url'].rstrip('/') + '/callback'
 
-    if isinstance(user, (str, unicode)):
+    if isinstance(user, (bytes, str)):
         # User is a string! Probably a bunch of HTML from a previous error. Just bail and hope for the best.
         return user
 
@@ -131,7 +131,7 @@ def logout():
         del _session_store[session['session_id']]
     session.clear()
     
-    print "Logging out at ", _config['end_session_endpoint']
+    print("Logging out at ", _config['end_session_endpoint'])
     logout_request = _config['end_session_endpoint'] + '?client_id=' + _config['client_id'] + '&post_logout_redirect_uri=' + _config['base_url']
     return redirect(logout_request)
 
@@ -196,7 +196,7 @@ def revoke():
 
         try:
             _client.revoke(token, token_type_hint)
-        except urllib2.URLError as e:
+        except URLError as e:
             return create_error(error_message, e)
 
     return redirect_with_baseurl('/')
@@ -247,12 +247,12 @@ def call_api():
                 access_token = user.access_token
             else:
                 user.api_response = None
-                print 'No access token in session'
+                print('No access token in session')
 
                 return redirect_with_baseurl("/")
 
             try:
-                req = urllib2.Request(_config['api_endpoint'])
+                req = Request(_config['api_endpoint'])
                 req.add_header('User-Agent', 'CurityExample/1.0')
                 req.add_header("Authorization", "Bearer %s" % access_token)
                 req.add_header("Accept", 'application/json')
@@ -261,16 +261,16 @@ def call_api():
                     req.add_header('Ocp-Apim-Subscription-Key', _config['subscription_key'])
                     req.add_header('Ocp-Apim-Trace', 'true')
 
-                response = urllib2.urlopen(req, context=tools.get_ssl_context(_config))
+                response = urlopen(req, context=tools.get_ssl_context(_config))
                 user.api_response = {'code': response.code, 'data': response.read()}
-            except urllib2.HTTPError as e:
+            except HTTPError as e:
                 user.api_response = {'code': e.code, 'data': e.read()}
             except Exception as e:
                 message = e.message if len(e.message) > 0 else "unknown error"
                 user.api_response = {"code": "unknown error", "data": message}
         else:
             user.api_response = None
-            print 'No API endpoint configured'
+            print('No API endpoint configured')
 
     return redirect_with_baseurl('/')
 
@@ -311,7 +311,7 @@ def oauth_callback():
         # This is the callback for a hybrid or implicit flow
         return render_template('index.html')
 
-    if 'state' not in session or session['state'] != request.args['state']:
+    if 'state' not in session or session['state'].decode() != request.args['state']:
         return create_error('Missing or invalid state')
 
     if "code_verifier" not in session:
@@ -332,7 +332,7 @@ def callback(params):
     session.pop('state', None)
 
     try:
-        token_data = _client.get_token(params['code'], session["code_verifier"])
+        token_data = _client.get_token(params['code'], session["code_verifier"].decode())
     except Exception as e:
         return create_error('Could not fetch token(s)', e)
 
@@ -377,8 +377,8 @@ def create_error(message, exception=None):
     :param message:
     :return: redirects to index.html with the error message
     """
-    print 'Caught error!'
-    print message, exception
+    print('Caught error!')
+    print(message, exception)
     if _app:
         user = UserSession()
         if 'session_id' in session:
@@ -396,7 +396,7 @@ def load_config():
     :return:
     """
     if len(sys.argv) > 1:
-        print "Using an alternative config file: %s" % sys.argv[1]
+        print("Using an alternative config file: %s" % sys.argv[1])
         filename = sys.argv[1]
     else:
         filename = 'settings.json'
@@ -419,7 +419,7 @@ if __name__ == '__main__':
     if 'jwks_uri' in _config:
         _jwt_validator = JwtValidator(_config)
     else:
-        print 'Found no url to JWK set, will not be able to validate JWT signature.'
+        print('Found no url to JWK set, will not be able to validate JWT signature.')
         _jwt_validator = None
 
     # create a session store
@@ -442,10 +442,10 @@ if __name__ == '__main__':
     debug = _config['debug'] = 'debug' in _config and _config['debug']
 
     if debug:
-        print 'Running conf:'
+        print('Running conf:')
         print_json(_config)
 
     if _disable_https:
         _app.run('0.0.0.0', debug=debug, port=port)
     else:
-        _app.run('0.0.0.0', debug=debug, port=port, ssl_context=('keys/localhost.pem', 'keys/localhost.pem'))
+        _app.run('0.0.0.0', debug=debug, port=port, ssl_context='adhoc')

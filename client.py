@@ -17,8 +17,10 @@ import hashlib
 import json
 import os
 import time
-import urllib
-import urllib2
+from urllib.parse import urlencode
+from urllib.request import urlopen
+from urllib.error import URLError
+from urllib.request import Request
 
 from jwkest.jwk import KEYS
 from jwkest.jws import JWS
@@ -42,7 +44,7 @@ class Client:
     def __init__(self, config):
         self.config = config
 
-        print 'Getting ssl context for oauth server'
+        print('Getting ssl context for oauth server')
         self.ctx = tools.get_ssl_context(self.config)
         self.__init_config()
         self.client_data = None
@@ -51,14 +53,14 @@ class Client:
 
         if 'issuer' in self.config:
             meta_data_url = self.config['issuer'] + '/.well-known/openid-configuration'
-            print 'Fetching config from: %s' % meta_data_url
-            meta_data = urllib2.urlopen(meta_data_url, context=self.ctx)
+            print('Fetching config from: %s' % meta_data_url)
+            meta_data = urlopen(meta_data_url, context=self.ctx)
             if meta_data:
                 self.config.update(json.load(meta_data))
             else:
-                print 'Unexpected response on discovery document: %s' % meta_data
+                print('Unexpected response on discovery document: %s' % meta_data)
         else:
-            print 'Found no issuer in config, can not perform discovery. All endpoint config needs to be set manually'
+            print('Found no issuer in config, can not perform discovery. All endpoint config needs to be set manually')
 
         # Mandatory settings
         if 'authorization_endpoint' not in self.config:
@@ -68,20 +70,20 @@ class Client:
 
         self.read_credentials_from_file()
         if 'client_id' not in self.config:
-            print 'Client is not registered.'
+            print('Client is not registered.')
 
         if 'scope' not in self.config:
             self.config['scope'] = 'openid'
 
     def read_credentials_from_file(self):
         if not os.path.isfile(REGISTERED_CLIENT_FILENAME):
-            print 'Client is not dynamically registered'
+            print('Client is not dynamically registered')
             return
 
         try:
             registered_client = json.loads(open(REGISTERED_CLIENT_FILENAME).read())
         except Exception as e:
-            print 'Could not read credentials from file', e
+            print('Could not read credentials from file', e)
             return
         self.config['client_id'] = registered_client['client_id']
         self.config['client_secret'] = registered_client['client_secret']
@@ -94,8 +96,8 @@ class Client:
         :raises: raises error when http call fails
         """
         if 'registration_endpoint' not in self.config:
-            print 'Authorization server does not support Dynamic Client Registration. Please configure client ' \
-                  'credentials manually '
+            print('Authorization server does not support Dynamic Client Registration. Please configure client ' \
+                  'credentials manually ')
             return
 
         if 'client_id' in self.config:
@@ -108,7 +110,7 @@ class Client:
             dcr_access_token = self.get_registration_token()
 
         if 'template_client' in self.config:
-            print 'Registering client using template_client: %s' % self.config['template_client']
+            print('Registering client using template_client: %s' % self.config['template_client'])
             data = {
                 'software_id': self.config['template_client']
             }
@@ -120,7 +122,7 @@ class Client:
             }
 
             if self.config['debug']:
-                print 'Registering client with data:\n %s' % json.dumps(data)
+                print('Registering client with data:\n %s' % json.dumps(data))
 
         register_response = self.__urlopen(self.config['registration_endpoint'], data=json.dumps(data),
                                            context=self.ctx, token=dcr_access_token)
@@ -153,7 +155,7 @@ class Client:
         :raises: raises error when http call fails
         """
         if 'revocation_endpoint' not in self.config:
-            print 'No revocation endpoint set'
+            print('No revocation endpoint set')
             return
 
         data = {
@@ -163,7 +165,7 @@ class Client:
             'client_secret': self.config['client_secret']
         }
 
-        self.__urlopen(self.config['revocation_endpoint'], urllib.urlencode(data), context=self.ctx)
+        self.__urlopen(self.config['revocation_endpoint'], urlencode(data), context=self.ctx)
 
     def refresh(self, refresh_token):
         """
@@ -177,7 +179,7 @@ class Client:
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-        token_response = self.__urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
+        token_response = self.__urlopen(self.config['token_endpoint'], urlencode(data), context=self.ctx)
         return json.loads(token_response.read())
 
     def get_authn_req_url(self, session, acr, forceAuthN, scope, forceConsent, allowConsentOptionDeselection,
@@ -247,15 +249,16 @@ class Client:
         elif send_parameters_via == "request_uri":
             request_args = None  # TODO: Implement request URI support
 
-        login_url = "%s%s%s" % (self.config['authorization_endpoint'], delimiter, urllib.urlencode(request_args))
+        login_url = "%s%s%s" % (self.config['authorization_endpoint'], delimiter, urlencode(request_args))
 
-        print "Redirect to %s" % login_url
+        print("Redirect to %s" % login_url)
 
         return login_url
 
     def get_token(self, code, code_verifier):
         """
         :param code: The authorization code to use when getting tokens
+        :param code_verifier: The original code verifier sent with the authorization request
         :return the json response containing the tokens
         """
         data = {'client_id': self.config['client_id'], "client_secret": self.config['client_secret'],
@@ -266,9 +269,9 @@ class Client:
 
         # Exchange code for tokens
         try:
-            token_response = self.__urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
-        except urllib2.URLError as te:
-            print "Could not exchange code for tokens"
+            token_response = self.__urlopen(self.config['token_endpoint'], urlencode(data), context=self.ctx)
+        except URLError as te:
+            print("Could not exchange code for tokens")
             raise te
         return json.loads(token_response.read())
 
@@ -294,14 +297,14 @@ class Client:
         }
 
         try:
-            token_response = self.__urlopen(self.config['token_endpoint'], urllib.urlencode(data), context=self.ctx)
-        except urllib2.URLError as te:
-            print "Could not get DCR access token"
+            token_response = self.__urlopen(self.config['token_endpoint'], urlencode(data), context=self.ctx)
+        except URLError as te:
+            print("Could not get DCR access token")
             raise te
 
         json_response = json.loads(token_response.read())
         if self.config['debug']:
-            print 'Got DCR token response: %s ' % json_response
+            print('Got DCR token response: %s ' % json_response)
 
         return json_response['access_token']
 
@@ -322,14 +325,17 @@ class Client:
         if token:
             headers['Authorization'] = 'Bearer %s' % token
 
-        request = urllib2.Request(url, data, headers)
+        if data is not None:
+            data = data.encode('utf-8')
+
+        request = Request(url, data, headers)
 
         if self.config['debug']:
-            print 'Request url: ' + url
-            print 'Request headers:\n' + json.dumps(headers)
-            print 'Request data:\n' + json.dumps(data)
+            print('Request url: ' + url)
+            print('Request headers:\n' + json.dumps(headers))
+            print('Request data:\n' + json.dumps(data.decode() if data is not None else None))
 
-        return urllib2.urlopen(request, context=context)
+        return urlopen(request, context=context)
 
     def __authn_req_args(self, state, scope, code_challenge, code_challenge_method="plain"):
         """

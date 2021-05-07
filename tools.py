@@ -28,7 +28,7 @@ def base64_urldecode(s):
 
 
 def base64_urlencode(s):
-    return base64.urlsafe_b64encode(s).split("=")[0].replace('+', '-').replace('/', '_')
+    return base64.urlsafe_b64encode(s).split('='.encode('utf-8'))[0]
 
 
 def decode_token(token):
@@ -51,7 +51,7 @@ def generate_random_string(size=20):
     """
     :return: a random string with a default size of 20 bytes using only ascii characters and digits
     """
-    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size)).encode('utf-8')
 
 
 def get_ssl_context(config):
@@ -61,12 +61,12 @@ def get_ssl_context(config):
     ctx = ssl.create_default_context()
 
     if 'verify_ssl_server' in config and not bool(config['verify_ssl_server']):
-        print 'Not verifying ssl certificates'
+        print('Not verifying ssl certificates')
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
     return ctx
 
 
 def print_json(map):
-    print json.dumps(map, indent=4, sort_keys=True)
+    print(json.dumps(map, indent=4, sort_keys=True))
 
