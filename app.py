@@ -312,7 +312,7 @@ def oauth_callback():
     if request.method == "GET":
         params = request.args
     else:
-        params = request.forms
+        params = request.form
 
     if session.get("flow", None) != "code":
         # This is the callback for a hybrid or implicit flow
