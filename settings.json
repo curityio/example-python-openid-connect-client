@@ -5,6 +5,7 @@
   "debug": true,
   "scope": "openid profile email address phone",
   "send_parameters_via": "query",
+  "response_mode": "query",
   "client_id": "python-client",
   "client_secret": "Password1",
   "redirect_uri": "https://localhost:5443/callback",

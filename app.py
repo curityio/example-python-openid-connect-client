@@ -114,6 +114,7 @@ def start_code_flow():
                                           scopes, request.args.get("forceConsent", False),
                                           request.args.get("allowConsentOptionDeselection", False),
                                           request.args.get("responseType", "code"),
+                                          _config.get("response_mode", "query"),
                                           request.args.get("ui_locales"),
                                           request.args.get("max_age"),
                                           request.args.get("claims"),
@@ -301,26 +302,32 @@ def ajax_callback():
     return "ok"
 
 
-@_app.route('/callback')
+@_app.route('/callback', methods=["GET", "POST"])
 def oauth_callback():
     """
     Called when the resource owner is returning from the authorization server
     :return:redirect to / with user info stored in the session.
     """
+
+    if request.method == "GET":
+        params = request.args
+    else:
+        params = request.forms
+
     if session.get("flow", None) != "code":
         # This is the callback for a hybrid or implicit flow
         return render_template('index.html')
 
-    if 'state' not in session or session['state'].decode() != request.args['state']:
+    if 'state' not in session or session['state'].decode() != params['state']:
         return create_error('Missing or invalid state')
 
     if "code_verifier" not in session:
         return create_error("No code_verifier in session")
 
-    if 'code' not in request.args:
+    if 'code' not in params:
         return create_error('No code in response')
 
-    user = callback(request.args)
+    user = callback(params)
 
     session['session_id'] = generate_random_string()
     _session_store[session['session_id']] = user
