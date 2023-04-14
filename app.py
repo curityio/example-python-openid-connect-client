@@ -19,6 +19,7 @@
 import sys
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
+from urllib.parse import quote_plus
 
 from flask import redirect, request, render_template, session, abort, Flask
 from jwkest import BadSignature
@@ -132,7 +133,7 @@ def logout():
     session.clear()
     
     print("Logging out at ", _config['end_session_endpoint'])
-    logout_request = _config['end_session_endpoint'] + '?client_id=' + _config['client_id'] + '&post_logout_redirect_uri=' + _config['base_url']
+    logout_request = _config['end_session_endpoint'] + '?client_id=' + _config['client_id'] + '&post_logout_redirect_uri=' + quote_plus(_config['base_url'])
     return redirect(logout_request)
 
 @_app.route('/refresh')
@@ -437,7 +438,10 @@ if __name__ == '__main__':
     _disable_https = 'disable_https' in _config and _config['disable_https']
 
     if 'base_url' not in _config:
-        _config['base_url'] = 'https://localhost:%i' % port
+        scheme = 'https'
+        if _disable_https:
+            scheme = 'http'
+        _config['base_url'] = '{}://localhost:{}'.format(scheme, port)
 
     debug = _config['debug'] = 'debug' in _config and _config['debug']
 
