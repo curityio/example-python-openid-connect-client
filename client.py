@@ -183,7 +183,7 @@ class Client:
         return json.loads(token_response.read())
 
     def get_authn_req_url(self, session, acr, forceAuthN, scope, forceConsent, allowConsentOptionDeselection,
-                          response_type, ui_locales, max_age, claims, send_parameters_via):
+                          response_type, response_mode, ui_locales, max_age, claims, send_parameters_via):
         """
         :param session: the session, will be used to keep the OAuth state
         :param acr: The acr to request
@@ -199,6 +199,7 @@ class Client:
 
         request_args = {'scope': scope,
                         'response_type': response_type,
+                        'response_mode': response_mode,
                         'client_id': self.config['client_id'],
                         'state': state,
                         'code_challenge': code_challenge,
