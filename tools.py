@@ -24,7 +24,7 @@ import ssl
 def base64_urldecode(s):
     ascii_string = str(s)
     ascii_string += '=' * (4 - (len(ascii_string) % 4))
-    return base64.urlsafe_b64decode(ascii_string)
+    return base64.urlsafe_b64decode(ascii_string).decode("utf-8")
 
 
 def base64_urlencode(s):
